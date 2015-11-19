@@ -1,10 +1,8 @@
 var WebSocketServer = new require('ws');
 
-var Geometry = require("geometry");
+var Geometry = require("geometry_noch");
 
-var memwatch = require("memwatch");
-
-var params = require("db");
+var params = require("db_noch");
 params.connect();
 
 //creating PhysicsWorld
@@ -630,8 +628,3 @@ setInterval(function() {
     }
 }, 1000 / 60);
 
-//catches memory leaks
-//noinspection JSUnresolvedFunction
-memwatch.on('leak', function(info) {
-    console.log(info);
-});
