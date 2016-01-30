@@ -4,12 +4,12 @@
   "description": "NOCH game",
   "main": "server.js",
   "dependencies": {
-    "ws": "^0.8.0"
+    "ws": "^0.7.2"
   },
   "devDependencies": {
     "db_noch": "0.0.1",
     "geometry_noch": "0.0.1",
-    "ws": "^0.8.0"
+    "ws": "^0.7.2"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
