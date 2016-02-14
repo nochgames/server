@@ -2,10 +2,11 @@
  * Created by fatman on 06/07/15.
  */
 
+var Messages = require("../../messages");
 var Matter = require('matter-js/build/matter.js');
 var params = require("db_noch");
 var elements = params.getParameter("elements");
-var basicParticle = require("../basic particle");
+var basicParticle = require("../basic particle/index");
 
 var Engine = Matter.Engine,
     World = Matter.World,
@@ -13,11 +14,12 @@ var Engine = Matter.Engine,
     Body = Matter.Body,
     Composite = Matter.Composite;
 
-var Player = function(ws, position, engine, elem, emitter) {
+var Player = function(ws, position, engine, elem, emitter, websocketservice) {
 
     basicParticle.call(this, position, engine, elem, emitter);
 
     this.ws = ws;
+    this.websocketservice = websocketservice;
 
     this.isReady = false;
 
@@ -145,8 +147,7 @@ Player.prototype = {
     lose: function(engine, playersArray, garbageArray, newPlayerBody) {
 
         try {
-            this.ws.send(JSON.stringify({"dead": true}));
-            this.ws.close(1000, "lost");
+            this.websocketservice.closeSocket(Messages.notifyDeath(true), this);
         } catch(e) {
             console.log("already closed");
         }
@@ -237,13 +238,8 @@ Player.prototype = {
             this.body.realRadius = newRadius;
             this.body.coefficient = this.body.multiplier / Math.sqrt(this.body.realRadius);
             if (this.coefficientTimeOut) clearTimeout(this.coefficientTimeOut);
-            try {
-                //console.log(this.body.coefficient);
-                this.ws.send(JSON.stringify( {
-                    "coefficient" : this.body.coefficient }));
-            } catch (e) {
-                console.log('Caught ' + e.name + ': ' + e.message);
-            }
+
+            this.websocketservice.sendToPlayer(Messages.changeCoeficient(this.body.coefficient), this);
         }
     },
 
@@ -263,15 +259,7 @@ Player.prototype = {
 
         var coefficient = this.body.multiplier / Math.sqrt(this.body.realRadius);
 
-        try {
-            this.ws.send(JSON.stringify({
-                "coefficient" : coefficient }));
-
-        } catch (e) {
-            console.log('Coefficient was not sent: '
-                        + coefficient + ' ' +
-                        e.name + ': ' + e.message);
-        }
+        this.websocketservice.sendToPlayer(Messages.changeCoeficient(coefficient), this);
 
         //console.log(self.body.realRadius);
 
@@ -279,6 +267,14 @@ Player.prototype = {
         this.coefficientTimeOut = setTimeout(function() {
             self.body.coefficient = coefficient;
         }, 2000);
+    },
+
+    updatePreviousPosition: function() {
+        if (Math.abs(this.previousPosition.x - this.body.position.x) > 1 ||
+            Math.abs(this.previousPosition.x - this.body.position.x) > 1) {
+            this.previousPosition.x = this.body.position.x;
+            this.previousPosition.y = this.body.position.y;
+        }
     }
 };
 

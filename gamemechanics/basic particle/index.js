@@ -2,6 +2,7 @@
  * Created by fatman on 06/08/15.
  */
 
+var Util_tools = require("../../util_tools");
 var Geometry = require("geometry_noch");
 var Matter = require('matter-js/build/matter.js');
 var params = require("db_noch");
@@ -13,7 +14,7 @@ var Engine = Matter.Engine,
     Body = Matter.Body,
     Composite = Matter.Composite;
 
-var basicParticle = function(position, engine, elem, emitter) {
+var BasicParticle = function(position, engine, elem, emitter) {
     this.CHARGE_RADIUS = 5;
 
     //creating physics body for player
@@ -56,7 +57,7 @@ var basicParticle = function(position, engine, elem, emitter) {
 
 };
 
-basicParticle.prototype = {
+BasicParticle.prototype = {
     traversDST: function(node, visit, visitAgain, engine) {
         visit(node, engine);
         if (!node.chemicalChildren) {
@@ -99,7 +100,6 @@ basicParticle.prototype = {
 
     //first part of disconnecting body from player
     free: function(node, engine) {
-
         clearInterval(node.intervalID);
         node.collisionFilter.mask = 0x0001;
         node.inGameType = "temporary undefined";
@@ -244,9 +244,7 @@ basicParticle.prototype = {
             if (revertTree.previousNode) {
                 node.chemicalChildren.push(revertTree.previousNode);
                 revertTree.previousNode.chemecalParent = node;
-                revertTree.previousNode.chemicalChildren.splice(
-                    revertTree.previousNode.chemicalChildren
-                    .indexOf(node), 1);
+                Util_tools.deleteFromArray(revertTree.previousNode.chemicalChildren, node);
                 revertTree.previousNode.constraint1 = node.constraint1;
                 revertTree.previousNode.constraint2 = node.constraint2;
             }
@@ -340,8 +338,8 @@ basicParticle.prototype = {
         if (child.constraint2) {
             this.freeBondAngle.call({body: child}, child.constraint2.chemicalAngle);
 
-            World.remove(engine.world, child.constraint1);
-            World.remove(engine.world, child.constraint2);
+            World.restore(engine.world, child.constraint1);
+            World.restore(engine.world, child.constraint2);
             delete child["constraint1"];
             delete child["constraint2"];
         }
@@ -492,4 +490,4 @@ basicParticle.prototype = {
     }
 };
 
-module.exports = basicParticle;
+module.exports = BasicParticle;
