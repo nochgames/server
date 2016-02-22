@@ -12,7 +12,8 @@ var Engine = Matter.Engine,
     World = Matter.World,
     Bodies = Matter.Bodies,
     Body = Matter.Body,
-    Composite = Matter.Composite;
+    Composite = Matter.Composite,
+    Vector = Matter.Vector;
 
 var Player = function(ws, position, engine, elem, emitter, websocketservice) {
 
@@ -212,12 +213,12 @@ Player.prototype = {
                 + (pos1.y - pos2.y) * (pos1.y - pos2.y));
             if (!distance) distance = 1;*/
             Body.applyForce(body, body.position,
-                /*Matter.Body.setVelocity(body,*/ {
-                    x: speed / forceCoefficient /*!/ Math.sqrt(distance) */*
+                /*Matter.Body.setVelocity(body,*/ Vector.create(
+                    speed / forceCoefficient /*!/ Math.sqrt(distance) */*
                     mx / Math.sqrt(mx * mx + my * my),
-                    y: speed / forceCoefficient /*/ Math.sqrt(distance) */*
+                    speed / forceCoefficient /*/ Math.sqrt(distance) */*
                     my / Math.sqrt(mx * mx + my * my)
-                });
+            ));
         });
 
         speed *= partsMultiplier;
@@ -226,10 +227,10 @@ Player.prototype = {
         this.body.force = { x: 0, y: 0 };
         this.body.torque = 0;
         Body.applyForce(this.body, this.body.position,
-        /*Body.setVelocity(this.body,*/ {
-            x: speed / forceCoefficient * mx / Math.sqrt(mx * mx + my * my),
-            y: speed / forceCoefficient * my / Math.sqrt(mx * mx + my * my)
-        });
+        /*Body.setVelocity(this.body,*/ Vector.create(
+            speed / forceCoefficient * mx / Math.sqrt(mx * mx + my * my),
+            speed / forceCoefficient * my / Math.sqrt(mx * mx + my * my)
+        ));
 
     },
 
@@ -275,6 +276,18 @@ Player.prototype = {
             this.previousPosition.x = this.body.position.x;
             this.previousPosition.y = this.body.position.y;
         }
+    },
+
+    inScreen: function(object, tolerance) {
+        if (!tolerance) tolerance = 0;
+        return (object.body.position.x - object.body.circleRadius < this.body.position.x +
+        this.resolution.width / this.body.coefficient / 2 + tolerance &&
+        object.body.position.x + object.body.circleRadius > this.body.position.x -
+        this.resolution.width / this.body.coefficient / 2 - tolerance &&
+        object.body.position.y - object.body.circleRadius < this.body.position.y +
+        this.resolution.height / this.body.coefficient / 2 + tolerance &&
+        object.body.position.y + object.body.circleRadius > this.body.position.y -
+        this.resolution.height / this.body.coefficient / 2 - tolerance);
     }
 };
 

@@ -20,6 +20,7 @@ var Engine = Matter.Engine,
 
 var GameMechanics = function(playersEmitter) {
     this.websocketservice = {};
+    this.intervals = [];
 
     this.recyclebin = new RecycleBin();
     var engine = Engine.create();
@@ -28,7 +29,6 @@ var GameMechanics = function(playersEmitter) {
     engine.enableSleeping = true;
 
     this.game_map = new GameMap(engine);
-    this.game_map.createFullBorder();
     
     this.colors = ["green", "blue", "yellow", "purple", "orange"];
 
@@ -44,7 +44,11 @@ GameMechanics.prototype = {
 
         var quantity = garbageDensity * diameter * diameter / 4;
 
-        console.log(quantity);
+        this.createCertainAmountOfGarbage(quantity);
+    },
+
+    createCertainAmountOfGarbage: function(quantity) {
+        var diameter = params.getParameter("gameDiameter");
 
         for (var j = 0; j < quantity; ++j) {
             var element = elements[Math.ceil(Math.random() * 10 - 1)];
@@ -57,6 +61,7 @@ GameMechanics.prototype = {
             var singleGarbage = new Garbage(position, this.context.engine, element, this.context.playersEmitter);
 
             this.context.garbage.push(singleGarbage);
+            this.context.garbageActive.push(singleGarbage.body);
             singleGarbage.body.number = this.context.garbage.indexOf(singleGarbage);
             this.subscribeToSleepEnd(singleGarbage.body);
             this.subscribeToSleepStart(singleGarbage.body);
@@ -94,8 +99,9 @@ GameMechanics.prototype = {
         Matter.Events.on(Body, 'sleepEnd', function(event) {
             var body = this;
             self.context.garbageActive.push(body);
+            //console.log(body.id + ' woke');
         });
-        console.log("body with id " + Body.id + " is subscribed to sleep end.");
+        //console.log("body with id " + Body.id + " is subscribed to sleep end.");
     },
 
     subscribeToSleepStart: function(Body) {
@@ -103,8 +109,9 @@ GameMechanics.prototype = {
         Matter.Events.on(Body, 'sleepStart', function(event) {
             var body = this;
             Util_tools.deleteFromArray(self.context.garbageActive, body);
+            //console.log(body.id + ' slept');
         });
-        console.log("body with id " + Body.id + " is subscribed to sleep start.");
+        //console.log("body with id " + Body.id + " is subscribed to sleep start.");
     },
 
     notifyAndInformNewPlayer: function(player) {
@@ -197,14 +204,14 @@ GameMechanics.prototype = {
 
     checkGarbageVisibility: function() {
         var objects = this.context.garbage.concat(this.game_map.border)
-            .concat(this.context.freeProtons)/*.concat(players)*/;
+            .concat(this.context.freeProtons);
         objects = objects.filter(function(obj) {
             return obj;
         });
         for (var i = 0; i < objects.length; ++i) {
             for (var j = 0; j < this.context.players.length; ++j) {
                 if (this.context.players[j] && this.context.players[j].isReady &&
-                    Util_tools.inScreen.call(this.context.players[j], objects[i], 500)) {
+                    this.context.players[j].inScreen(objects[i], 500)) {
 
                     var addedSuccessfully = this.addPlayerWhoSee(objects[i], j);
                     if (addedSuccessfully) {
@@ -233,10 +240,10 @@ GameMechanics.prototype = {
             while (j--) {
                 if (!this.context.players[playersWhoSee[j]]) {
                     playersWhoSee.splice(j, 1);
-                } else if (!Util_tools.inScreen.call(
-                        this.context.players[playersWhoSee[j]], objects[i], 500)) {
+                } else if (!this.context.players[playersWhoSee[j]].inScreen(objects[i], 500)) {
                     this.context.websocketservice.sendToPlayer(
-                        Messages.deleteParticle(objects[i].body.id), this.context.players[playersWhoSee[j]]);
+                        Messages.deleteParticle(objects[i].body.id),
+                        this.context.players[playersWhoSee[j]]);
                     playersWhoSee.splice(j, 1);
                 }
             }
@@ -346,19 +353,26 @@ GameMechanics.prototype = {
 
     run: function() {
         var self = this;
-        setInterval(function() {
+        this.intervals.push(setInterval(function() {
             Matter.Engine.update(self.context.engine, self.context.engine.timing.delta);
             self.recyclebin.empty();
             self.sendToAllPlayers();
             self.updatePlayersStats();
-        }, 1000 / 60);
+        }, 1000 / 60));
 
-        setInterval(function() {
+        this.intervals.push(setInterval(function() {
             self.updateActiveGarbage();
-        }, 1000 / 60);
-        setInterval(function() {
+        }, 1000 / 60));
+
+        this.intervals.push(setInterval(function() {
             self.checkGarbageVisibility();
-        }, 1000);
+        }, 1000));
+    },
+
+    stop: function() {
+        for (var i = 0; i < this.intervals.length; ++i) {
+          clearInterval(this.intervals[i]);
+        }
     }
 };
 

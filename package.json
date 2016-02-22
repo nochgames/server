@@ -9,8 +9,11 @@
     "ws": "^1.0.1"
   },
   "devDependencies": {
+    "chai": "^3.5.0",
     "db_noch": "0.0.1",
     "geometry_noch": "0.0.1",
+    "mocha": "^2.4.5",
+    "sinon": "^1.17.3",
     "ws": "^1.0.1"
   },
   "scripts": {

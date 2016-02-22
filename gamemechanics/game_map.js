@@ -19,8 +19,8 @@ var Map = function(engine) {
 
 Map.prototype = {
     createFullBorder: function() {
-        var BORDER_PART_LENGTH = 100;
-        var BORDER_PART_HEIGHT = 20;
+        var BORDER_PART_LENGTH = params.getParameter("borderPartLength");
+        var BORDER_PART_HEIGHT = params.getParameter("borderPartHeight");
 
         var center = { x: this.radius, y: this.radius };
 
@@ -41,10 +41,12 @@ Map.prototype = {
             World.addBody(this.engine.world, borderBody);
             this.border.push(borderPart);
         }
-
     },
 
     getRandomPositionInside: function(areaRadiusMin, areaRadiusMax) {
+        if (!areaRadiusMin) areaRadiusMin = 0;
+        if (!areaRadiusMin) areaRadiusMax = this.radius;
+
         var angle = Math.random() * 2 * Math.PI;
 
         var radius = Math.random() * (areaRadiusMax - areaRadiusMin) + areaRadiusMin;

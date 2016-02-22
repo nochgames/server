@@ -113,12 +113,17 @@ CollisionHandler.prototype = {
         }
     },
 
-    link: function(child, parent/*, constraint1, constraint2, angle1, angle2*/) {
+    link: function(child, parent) {
         this.context.addToArray(parent.chemicalChildren, child);
         child.chemicalParent = parent;
     },
 
     connectGarbageToPlayer: function(playerBody, garbageBody) {
+        if (this.context.recyclebin.ghosts.indexOf(garbageBody) != -1
+            || this.context.recyclebin.ghosts.indexOf(playerBody) != -1) {
+            console.log("dead man tell no tales");
+        }
+
         this.context.getMainObject(garbageBody).reverse();
         this.context.getMainObject(garbageBody).prepareForBond();
         this.createBond(playerBody, garbageBody);
@@ -141,6 +146,9 @@ CollisionHandler.prototype = {
     },
 
     collideWithProton: function(elementBody, protonBody) {
+        if (this.context.recyclebin.ghosts.indexOf(elementBody) != -1) {
+            console.log("dead man tell no tales");
+        }
 
         this.context.getMainObject(elementBody).changeCharge(1, this.context.engine, this.context.freeProtons);
         this.context.websocketservice.sendEverybody(Messages.changeElementGarbage(elementBody.id, elementBody.element));
@@ -150,6 +158,10 @@ CollisionHandler.prototype = {
     },
 
     collideWithNeutron: function(elementBody, neutronBody) {
+        if (this.context.recyclebin.ghosts.indexOf(elementBody) != -1) {
+            console.log("dead man tell no tales");
+        }
+
         if (Math.sqrt(neutronBody.velocity.x * neutronBody.velocity.x +
                 neutronBody.velocity.y * neutronBody.velocity.y) < 7) {
             this.context.playersEmitter.emit('particle died', { id: neutronBody.id,
@@ -173,6 +185,11 @@ CollisionHandler.prototype = {
     },
 
     collideWithGarbage: function(playerBody, garbageBody) {
+        if (this.context.recyclebin.ghosts.indexOf(garbageBody) != -1
+            || this.context.recyclebin.ghosts.indexOf(playerBody) != -1) {
+            console.log("dead man tell no tales");
+        }
+
         if (playerBody.getFreeBonds() && garbageBody.getFreeBonds()) {
             this.connectGarbageToPlayer(playerBody, garbageBody);
         } else if (playerBody.inGameType  == "playerPart"){
@@ -184,6 +201,11 @@ CollisionHandler.prototype = {
     },
 
     collidePVP: function(playerBodyA, playerBodyB) {
+        if (this.context.recyclebin.ghosts.indexOf(playerBodyB) != -1
+            || this.context.recyclebin.ghosts.indexOf(playerBodyA) != -1) {
+            console.log("dead man tell no tales");
+        }
+
         if (playerBodyA.playerNumber == playerBodyB.playerNumber) return;
         if (playerBodyA.getFreeBonds() && playerBodyB.getFreeBonds()) {
             this.connectPlayers(playerBodyA, playerBodyB);

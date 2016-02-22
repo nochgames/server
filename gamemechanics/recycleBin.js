@@ -46,7 +46,7 @@ RecycleBin.prototype = {
                     var player = this.context.getMainObject(ghost);
                     player.lose(this.context.engine, this.context.players, this.context.garbage);
                     this.context.playersEmitter.emit('player died', {player: player});
-                    player.garbagify(this.context.players, this.context.garbage);
+                    //player.garbagify(this.context.players, this.context.garbage);
                     delete this.ghosts[i];
                     break;
             }

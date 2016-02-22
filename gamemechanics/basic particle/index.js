@@ -12,7 +12,8 @@ var Engine = Matter.Engine,
     World = Matter.World,
     Bodies = Matter.Bodies,
     Body = Matter.Body,
-    Composite = Matter.Composite;
+    Composite = Matter.Composite,
+    Vector = Matter.Vector;
 
 var BasicParticle = function(position, engine, elem, emitter) {
     this.CHARGE_RADIUS = 5;
@@ -34,9 +35,9 @@ var BasicParticle = function(position, engine, elem, emitter) {
 
     this.body.bondAngles = [];
     var angle = 0;
-    for (var i = 0; i < this.body.totalBonds; ++i) {
+    for (var i = 0; i < this.body.elValency; ++i) {
         this.body.bondAngles.push({ "angle": angle, "available": true });
-        angle += 2 * Math.PI / this.body.totalBonds;
+        angle += 2 * Math.PI / this.body.elValency;
     }
 
     World.addBody(engine.world, this.body);
@@ -49,7 +50,7 @@ var BasicParticle = function(position, engine, elem, emitter) {
     this.body.intervalID = null;
 
     this.body.getFreeBonds = function() {
-        return self.body.totalBonds - self.body.chemicalBonds;
+        return self.body.elValency - self.body.chemicalBonds;
     };
     this.body.getAvailableNeutrons = function() {
         return self.body.maxNeutrons - self.body.neutrons;
@@ -175,7 +176,7 @@ BasicParticle.prototype = {
             Body.scale(this.body, coefficient, coefficient);
             this.body.circleRadius = element.radius + this.CHARGE_RADIUS;
 
-            this.body.totalBonds = element.valency;
+            this.body.elValency = element.valency;
             this.body.nuclearSpeed = element.speed;
             this.body.realMass -= this.body.mass;
             this.body.mass = element.mass;
@@ -187,14 +188,14 @@ BasicParticle.prototype = {
 
             if (this.body.bondAngles) {
                 var angle = 0;
-                while (this.body.bondAngles.length < this.body.totalBonds) {
+                while (this.body.bondAngles.length < this.body.elValency) {
                     this.body.bondAngles.push({ "angle": 0, "available": true });
                 }
-                for (var i = 0; i < this.body.totalBonds; ++i) {
+                for (var i = 0; i < this.body.elValency; ++i) {
                     this.body.bondAngles[i].angle = angle;
-                    angle += 2 * Math.PI / this.body.totalBonds;
+                    angle += 2 * Math.PI / this.body.elValency;
                 }
-                while (this.body.bondAngles.length > this.body.totalBonds) {
+                while (this.body.bondAngles.length > this.body.elValency) {
                     this.body.bondAngles.pop();
                 }
             }
@@ -225,10 +226,10 @@ BasicParticle.prototype = {
 
         nucleonBody.inGameType = nucleonBody.element = particle;
 
-        Matter.Body.setVelocity(nucleonBody, {
-            x: element.speed * mx / Math.sqrt(mx * mx + my * my),
-            y: element.speed * my / Math.sqrt(mx * mx + my * my)
-        });
+        Matter.Body.setVelocity(nucleonBody, Vector.create(
+            element.speed * mx / Math.sqrt(mx * mx + my * my),
+            element.speed * my / Math.sqrt(mx * mx + my * my))
+        );
 
         nucleon.body = nucleonBody;
         nucleon.body.playersWhoSee = [];
@@ -338,8 +339,8 @@ BasicParticle.prototype = {
         if (child.constraint2) {
             this.freeBondAngle.call({body: child}, child.constraint2.chemicalAngle);
 
-            World.restore(engine.world, child.constraint1);
-            World.restore(engine.world, child.constraint2);
+            World.remove(engine.world, child.constraint1);
+            World.remove(engine.world, child.constraint2);
             delete child["constraint1"];
             delete child["constraint2"];
         }
@@ -402,7 +403,9 @@ BasicParticle.prototype = {
 
         this.setElement(elementName);
 
-        if (this.body.chemicalBonds > this.body.totalBonds) {
+        console.log("chemicalBonds: " + this.body.chemicalBonds);
+        console.log("elValency: " + this.body.elValency);
+        if (this.body.chemicalBonds > this.body.elValency) {
             this.dismountBranch(engine);
         }
         for (var i = 0; i < this.body.bondAngles.length; ++i) {

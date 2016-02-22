@@ -41,7 +41,8 @@ Context.prototype = {
         //console.log(body.inGameType);
         switch (body.inGameType) {
             case "player":
-                //console.log("returning player at " + body.number);
+                console.log("returning player at " + body.number +
+                    "\vplayers is " + this.players[body.number]);
                 return this.players[body.number];
             case "player temporary undefined":
             case "temporary undefined":
@@ -49,11 +50,13 @@ Context.prototype = {
             case "playerPart temporary undefined":
             case "garbage":
             case "garbage temporary undefined":
-                //console.log("returning garbage at " + body.number);
+                console.log("returning garbage at " + body.number +
+                    "\vgarbage is " + this.garbage[body.number]);
                 return this.garbage[body.number];
             case "n":
             case "p":
-                //console.log("returning freeProtons at " + body.number);
+                console.log("returning freeProtons at " + body.number +
+                    "\vfreeProtons is " + this.freeProtons[body.number]);
                 return this.freeProtons[body.number];
         }
     },

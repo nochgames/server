@@ -29,7 +29,8 @@ WebsocketService.prototype = {
         try {
             reciever.ws.send(JSON.stringify(message));
         } catch(e) {
-            console.log('Unable to send ' + message + ' to player.\n' + e);
+            console.log('Unable to send ' + message +
+                ' to player. Player is\n' + reciever.ws + '\n' + e);
         }
     },
 
