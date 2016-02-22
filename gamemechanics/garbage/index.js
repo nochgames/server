@@ -33,8 +33,10 @@ Garbage.prototype = {
         }
     },
 
+    //Note: body can have chemicalParent but no constraints if
+    //chemicalParent is in state of reconnecting THIS particle.
     correctBondAngles: function(engine) {
-        if (this.body.chemicalParent) {
+        if (this.body.chemicalParent && this.body.constraint1) {
             this.freeBondAngle.call({ body: this.body.chemicalParent },
                 this.body.constraint1.chemicalAngle);
             //this.freeBondAngle(this.constraint2.chemicalAngle);
