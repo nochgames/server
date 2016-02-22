@@ -7,6 +7,8 @@
  Matter.js
  
 ## server
+####System software requrements
+Node.js 4.2.2
 ### Quickstart
 ```shell
 git clone git@github.com:nochgames/server.git
