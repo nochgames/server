@@ -24,33 +24,6 @@ var Garbage = function(position, engine, elem, emitter) {
 
 Garbage.prototype = {
 
-    dismountBranch: function(engine) {
-        if (this.body.chemicalBonds > 1) {
-            var child = this.body.chemicalChildren.pop();
-            this.traversDST(child, this.free, this.letGo, engine);
-        } else {
-            this.traversDST(this.body, this.free, this.letGo, engine);
-        }
-    },
-
-    //Note: body can have chemicalParent but no constraints if
-    //chemicalParent is in state of reconnecting THIS particle.
-    correctBondAngles: function(engine) {
-        if (this.body.chemicalParent && this.body.constraint1) {
-            this.freeBondAngle.call({ body: this.body.chemicalParent },
-                this.body.constraint1.chemicalAngle);
-            //this.freeBondAngle(this.constraint2.chemicalAngle);
-            var self = {};
-            self.connectBody = this.connectBody;
-            self.freeBondAngle = this.freeBondAngle;
-            self.correctParentBond = this.correctParentBond;
-            self.getClosestAngle = this.getClosestAngle;
-            self.body = this.body.chemicalParent;
-
-            this.reconnectBond.call(self, this.body, engine);
-        }
-        this.correctBondAnglesFinal(engine);
-    }
 };
 
 Garbage.prototype.__proto__ = basicParticle.prototype;

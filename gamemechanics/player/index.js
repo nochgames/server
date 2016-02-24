@@ -7,6 +7,7 @@ var Matter = require('matter-js/build/matter.js');
 var params = require("db_noch");
 var elements = params.getParameter("elements");
 var basicParticle = require("../basic particle/index");
+var garbage = require("../garbage");
 
 var Engine = Matter.Engine,
     World = Matter.World,
@@ -63,7 +64,7 @@ Player.prototype = {
         return func.mass;
     },
 
-    shoot: function(particle, shotPos, nucleonsArray, garbageArray, engine) {
+    shoot: function(particle, shotPos, nucleonsArray, engine) {
 
         if (particle == "p" && this.body.element == "H") return false;
         if (particle == "n" && this.body.neutrons == 0) return false;
@@ -73,7 +74,7 @@ Player.prototype = {
 
             var nucleonBody = this.createNucleon(particle, shotPos, nucleonsArray, engine);
 
-            if (particle == "p") this.changeCharge(-1, engine, nucleonsArray, garbageArray);
+            if (particle == "p") this.changeCharge(-1, engine, nucleonsArray);
 
             var self = this;
 
@@ -120,31 +121,6 @@ Player.prototype = {
         return false;
     },
 
-    dismountBranch: function(engine) {
-        var child = {
-            body: null,
-            mass: Infinity
-        };
-
-        for (var i = 0; i < this.body.chemicalChildren.length; ++i) {
-            if (this.body.chemicalChildren[i]) {
-                var nextChild = {
-                    body: this.body.chemicalChildren[i],
-                    mass: this.calculateMass(this.body.chemicalChildren[i])
-                };
-                if (nextChild.mass < child.mass) child = nextChild;
-            }
-        }
-
-        this.traversDST(child.body, this.free, this.letGo, engine);
-
-        if (!this.body.chemicalBonds) this.checkResizeShrink();
-    },
-
-    correctBondAngles: function(engine) {
-        this.correctBondAnglesFinal(engine);
-    },
-
     lose: function(engine, playersArray, garbageArray, newPlayerBody) {
 
         try {
@@ -164,8 +140,6 @@ Player.prototype = {
     //turns player into garbage before appending it to another player
     garbagify: function(playersArray, garbageArray, newPlayerBody) {
 
-        var playerNumber = this.body.playerNumber;
-
         garbageArray.push(this);
         this.body.number = garbageArray.indexOf(this);
 
@@ -176,15 +150,26 @@ Player.prototype = {
             this.traversDST(this.body, function(node) {
                 node.emitter.emit('became garbage', { garbageBody: node });
                 node.inGameType = "garbage";
-                node.playerNumber = - 1;
+                node.playerNumber = -958;
             });
         }
 
         delete (this.body.realRadius);
         delete (this.body.coefficient);
         delete (this.body.resolution);
+        this.body.wasPlayer = 'lose';
 
-        delete playersArray[playerNumber];
+        var playerIndex = playersArray.map(function(pl) {
+            if (pl) {
+                return pl.body.id;
+            }
+            return null;
+        }).indexOf(this.body.id);
+        if (playerIndex > -1) {
+            delete playersArray[playerIndex];
+        } else {
+            throw new Error('incorrect behaviour');
+        }
     },
 
     applyVelocity: function(mx, my) {

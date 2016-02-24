@@ -18,9 +18,12 @@ Context.prototype = {
         switch (body.inGameType) {
             case "player":
                 return this.players;
+            case "player temporary undefined":
             case "temporary undefined":
             case "playerPart":
+            case "playerPart temporary undefined":
             case "garbage":
+            case "garbage temporary undefined":
                 return this.garbage;
             case "n":
             case "p":
@@ -38,11 +41,8 @@ Context.prototype = {
     },
 
     getMainObject: function(body) {
-        //console.log(body.inGameType);
         switch (body.inGameType) {
             case "player":
-                console.log("returning player at " + body.number +
-                    "\vplayers is " + this.players[body.number]);
                 return this.players[body.number];
             case "player temporary undefined":
             case "temporary undefined":
@@ -50,13 +50,35 @@ Context.prototype = {
             case "playerPart temporary undefined":
             case "garbage":
             case "garbage temporary undefined":
-                console.log("returning garbage at " + body.number +
-                    "\vgarbage is " + this.garbage[body.number]);
+                if (!this.garbage[body.number]) {
+                    console.log(body.inGameType);
+                    console.log('actual id is ' +
+                        this.garbage.map(function(gb) {
+                        if (gb)  {
+                            return gb.body.id;
+                        }
+                        return null;
+                    }).indexOf(body.id) + ' fake id is ' +
+                    body.number);
+                    console.log('id ' + body.id);
+                    console.log("Was player: " + body.wasPlayer);
+                    console.log("Was deleted: " );
+                    console.log(this.recyclebin.deletedIds.indexOf(body.id));
+                    console.log("Is player: ");
+                    console.log(this.players.map(function(gb) {
+                        if (gb)  {
+                            return gb.body.id;
+                        }
+                        return null;
+                    }).indexOf(body.id));
+                    console.log("Was deleted from garbage array: ");
+                    console.log(this.recyclebin.deletedGabageNumbers.indexOf(body.number));
+                    console.log("deleted from garbage array total: " +
+                                this.recyclebin.deletedGabageNumbers.length);
+                }
                 return this.garbage[body.number];
             case "n":
             case "p":
-                console.log("returning freeProtons at " + body.number +
-                    "\vfreeProtons is " + this.freeProtons[body.number]);
                 return this.freeProtons[body.number];
         }
     },

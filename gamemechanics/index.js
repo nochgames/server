@@ -1,3 +1,5 @@
+'use strict';
+
 var Geometry = require("geometry_noch");
 var Messages = require("../messages");
 var Util_tools = require("../util_tools");
@@ -50,7 +52,7 @@ GameMechanics.prototype = {
     createCertainAmountOfGarbage: function(quantity) {
         var diameter = params.getParameter("gameDiameter");
 
-        for (var j = 0; j < quantity; ++j) {
+        for (let j = 0; j < quantity; ++j) {
             var element = elements[Math.ceil(Math.random() * 10 - 1)];
 
             var OFFSET_BORDER = 40;
@@ -62,7 +64,7 @@ GameMechanics.prototype = {
 
             this.context.garbage.push(singleGarbage);
             this.context.garbageActive.push(singleGarbage.body);
-            singleGarbage.body.number = this.context.garbage.indexOf(singleGarbage);
+            singleGarbage.body.number = j;
             this.subscribeToSleepEnd(singleGarbage.body);
             this.subscribeToSleepStart(singleGarbage.body);
         }
@@ -115,7 +117,7 @@ GameMechanics.prototype = {
     },
 
     notifyAndInformNewPlayer: function(player) {
-        for (var i = 0; i < this.context.players.length; ++i) {
+        for (let i = 0; i < this.context.players.length; ++i) {
             if (!(this.context.players[i] && player.body.number != i)) continue;
             try {
                 this.websocketservice.sendToPlayer(
@@ -145,7 +147,7 @@ GameMechanics.prototype = {
         var response = {};
 
         var playersWhoMove =
-            Util_tools.parseCoordinates(this.context.players.map(function(player) {
+            Util_tools.parseCoordinates(this.context.players.map(player => {
                 if (Math.abs(player.previousPosition.x - player.body.position.x) > 1 ||
                     Math.abs(player.previousPosition.y - player.body.position.y) > 1) {
 
@@ -160,7 +162,7 @@ GameMechanics.prototype = {
     },
 
     sendToAllPlayers: function() {
-        for (var j = 0; j < this.context.players.length; ++j) {
+        for (let j = 0; j < this.context.players.length; ++j) {
             if (this.context.players[j]) {
                 var message = this.createMessage(j);
                 if (!Util_tools.isEmpty(message)) this.websocketservice
@@ -170,7 +172,7 @@ GameMechanics.prototype = {
     },
 
     updatePlayersStats: function() {
-        for (var i = 0; i < this.context.players.length; ++i) {
+        for (let i = 0; i < this.context.players.length; ++i) {
             if (this.context.players[i]) {
                 this.context.players[i].updatePreviousPosition();
             }
@@ -186,16 +188,29 @@ GameMechanics.prototype = {
 
         switch (object.body.inGameType) {
             case 'garbage':
-            case 'n':
-            case 'p':
             case 'playerPart':
                 message = Messages.newParticleOnScreen(
                     pos, object.body.id, object.body.element);
+                for (let i = 0; i < object.body.chemicalChildren.length; ++i) {
+                    if (!object.body.chemicalChildren[i]) continue;
+                    this.context.websocketservice.sendToPlayer(
+                        Messages.newBondOnScreen(object.body.id, object.body.chemicalChildren[i].id),
+                        this.context.players[playerNumber]);
+                }
+                if (object.body.chemicalParent) {
+                    this.context.websocketservice.sendToPlayer(
+                        Messages.newBondOnScreen(object.body.id, object.body.chemicalParent.id),
+                        this.context.players[playerNumber]);
+                }
                 break;
             case 'Border':
                 message = Messages.newBorderOnScreen(
                     pos, object.body.id, object.body.angle.toFixed(3));
                 break;
+            case 'n':
+            case 'p':
+                message = Messages.newParticleOnScreen(
+                    pos, object.body.id, object.body.element);
         }
 
         this.context.websocketservice.sendToPlayer(message, this.context.players[playerNumber]);
@@ -205,11 +220,11 @@ GameMechanics.prototype = {
     checkGarbageVisibility: function() {
         var objects = this.context.garbage.concat(this.game_map.border)
             .concat(this.context.freeProtons);
-        objects = objects.filter(function(obj) {
+        objects = objects.filter(obj => {
             return obj;
         });
-        for (var i = 0; i < objects.length; ++i) {
-            for (var j = 0; j < this.context.players.length; ++j) {
+        for (let i = 0; i < objects.length; ++i) {
+            for (let j = 0; j < this.context.players.length; ++j) {
                 if (this.context.players[j] && this.context.players[j].isReady &&
                     this.context.players[j].inScreen(objects[i], 500)) {
 
@@ -217,7 +232,8 @@ GameMechanics.prototype = {
                     if (addedSuccessfully) {
                         var currentBody = objects[i].body;
 
-                        while (currentBody.chemicalParent && addedSuccessfully) {
+                        //TODO: make new system
+                        /*while (currentBody.chemicalParent && addedSuccessfully) {
                             var secondBody = currentBody.chemicalParent;
     
                             if (currentBody.chemicalParent.inGameType != 'player') {
@@ -230,13 +246,13 @@ GameMechanics.prototype = {
                                 Messages.newBondOnScreen(currentBody.id, secondBody.id),
                                 this.context.players[j]);
                             currentBody = secondBody;
-                        }
+                        }*/
                     }
                 }
             }
             var playersWhoSee = objects[i].body.playersWhoSee;
     
-            j = playersWhoSee.length;
+            let j = playersWhoSee.length;
             while (j--) {
                 if (!this.context.players[playersWhoSee[j]]) {
                     playersWhoSee.splice(j, 1);
@@ -263,12 +279,13 @@ GameMechanics.prototype = {
                                                         event.player.body.id));
             var objects = self.context.garbage.concat(self.game_map.border)
                             .concat(self.context.freeProtons);
-            objects = objects.filter(function(obj) {
+            objects = objects.filter(obj => {
                 return obj;
             });
-            for (var i = 0; i < objects.length; ++i) {
+            /*for (let i = 0; i < objects.length; ++i) {
                 Util_tools.deleteFromArray(objects[i].body.playersWhoSee, playerId);
-            }
+            }*/
+            console.log('player died');
         });
 
         self.context.playersEmitter.on('particle died', function(event) {
@@ -309,7 +326,7 @@ GameMechanics.prototype = {
     },
 
     synchronizePlayersWhoSee: function(target, mainArray) {
-        for (var i = 0; i < mainArray.length; ++i) {
+        for (let i = 0; i < mainArray.length; ++i) {
             if (target.playersWhoSee.indexOf(mainArray[i]) == -1) {
                 this.addPlayerWhoSee(this.context.getMainObject(target), mainArray[i]);
             }
@@ -317,21 +334,21 @@ GameMechanics.prototype = {
     },
 
     updateActiveGarbage: function() {
-        var realPlayers = this.context.players.filter(function(player) {
+        var realPlayers = this.context.players.filter(player => {
             return player;
         });
 
         var particlesActive = this.context.garbageActive
-            .concat(this.context.freeProtons.filter(function(particle) {
+            .concat(this.context.freeProtons.filter(particle => {
             return particle;
-        }).map(function(particle) {
+        }).map(particle => {
             return particle.body;
         }));
 
-        for (var i = 0; i < realPlayers.length; ++i) {
+        for (let i = 0; i < realPlayers.length; ++i) {
             var garbageToSend = [];
             var playerIndex = this.context.players.indexOf(realPlayers[i]);
-            for (var j = 0; j < particlesActive.length; ++j) {
+            for (let j = 0; j < particlesActive.length; ++j) {
                 var realPlayerIndex = particlesActive[j].playersWhoSee
                     .indexOf(playerIndex);
                 if (realPlayerIndex != -1) {
@@ -362,17 +379,53 @@ GameMechanics.prototype = {
 
         this.intervals.push(setInterval(function() {
             self.updateActiveGarbage();
+
         }, 1000 / 60));
 
         this.intervals.push(setInterval(function() {
             self.checkGarbageVisibility();
+            var unique = [];
+            var numbers = self.context.garbage.map(gb => {
+                if (gb) {
+                    return gb.body.number;
+                }
+                return null;
+            }).filter(gb => { return gb; });
+            for (let i = 0; i < numbers.length; ++i) {
+                if (unique.indexOf(numbers[i]) == -1) {
+                    unique.push(numbers[i]);
+                }
+            }
+            if (numbers.length != unique.length) {
+                console.log(unique);
+                console.log(numbers);
+                throw new Error('Incorrect behaviour');
+            }
         }, 1000));
     },
 
     stop: function() {
-        for (var i = 0; i < this.intervals.length; ++i) {
+        for (let i = 0; i < this.intervals.length; ++i) {
           clearInterval(this.intervals[i]);
         }
+    },
+
+    logMemoryUsage: function() {
+        var min = Infinity;
+        var max = 0;
+        let time = new Date();
+        let sec = time.getSeconds();
+        let minutes = time.getMinutes();
+
+        setInterval(function() {
+            console.log(`Server is active ${new Date().getMinutes() - minutes
+                } minutes ${new Date().getSeconds() - sec} seconds`);
+            var usage = process.memoryUsage().heapUsed;
+            if (usage < min) min = usage;
+            if (usage > max) max = usage;
+            console.log(usage + ' (min: '
+                + min + ', max: ' + max + ')');
+        }, 25000);
     }
 };
 

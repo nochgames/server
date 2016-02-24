@@ -2,6 +2,8 @@
  * Created by fatman on 30/01/16.
  */
 
+'use strict';
+
 var Util_tools = require("../util_tools");
 var Matter = require('matter-js/build/matter.js');
 var World = Matter.World;
@@ -9,6 +11,8 @@ var World = Matter.World;
 var RecycleBin = function(context) {
     this.context = context;
     this.ghosts = [];
+    this.deletedIds = [];
+    this.deletedGabageNumbers = [];
 };
 
 RecycleBin.prototype = {
@@ -21,15 +25,18 @@ RecycleBin.prototype = {
     },
 
     empty: function() {
-        for (var i = 0; i < this.ghosts.length; ++i) {
+        for (let i = 0; i < this.ghosts.length; ++i) {
             if (!this.ghosts[i]) continue;
             var ghost = this.ghosts[i];
+            this.deletedIds.push(ghost.id);
             switch (ghost.inGameType) {
                 case "p":
+                case "n":
                     this.deleteProperly(ghost);
                     delete this.ghosts[i];
                     break;
                 case "playerPart":
+                    this.deletedGabageNumbers.push(ghost.number);
                     var playerToCheck = this.context.getPlayer(ghost);
                     this.context.getMainObject(ghost).die(this.context.engine);
                     this.deleteProperly(ghost);
@@ -37,6 +44,7 @@ RecycleBin.prototype = {
                     playerToCheck.checkResizeShrink();
                     break;
                 case "garbage":
+                    this.deletedGabageNumbers.push(ghost.number);
                     this.context.garbage[ghost.number].die(this.context.engine);
                     this.deleteProperly(ghost);
                     delete this.ghosts[i];
@@ -49,6 +57,8 @@ RecycleBin.prototype = {
                     //player.garbagify(this.context.players, this.context.garbage);
                     delete this.ghosts[i];
                     break;
+                default :
+                    throw new Error('Incorrect behaviour');
             }
         }
     },
@@ -61,6 +71,19 @@ RecycleBin.prototype = {
 
         Util_tools.deleteFromArray(this.context.garbageActive, body);
         World.remove(this.context.engine.world, body);
+        if (this.context.getArray(body)[body.number].body.id != body.id) {
+            console.log(this.context.getArray(body)[body.number]);
+            console.log('\n==================================\n');
+            console.log(body);
+            var numbers = this.context.garbage.map(function(gb) {
+                if (gb) {
+                    return gb.body.number;
+                }
+                return null;
+            });
+            //console.log(numbers);
+            throw new Error('incorrect behaviour');
+        }
         delete this.context.getArray(body)[body.number];
     },
 

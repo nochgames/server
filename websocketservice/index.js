@@ -1,6 +1,9 @@
 /**
  * Created by fatman on 31/01/16.
  */
+
+'use strict';
+
 var WebSocketServer = new require('ws');
 var Messages = require("../messages");
 
@@ -30,7 +33,7 @@ WebsocketService.prototype = {
             reciever.ws.send(JSON.stringify(message));
         } catch(e) {
             console.log('Unable to send ' + message +
-                ' to player. Player is\n' + reciever.ws + '\n' + e);
+                ' to player. Player is\n' + reciever + '\n' + e);
         }
     },
 
@@ -40,7 +43,7 @@ WebsocketService.prototype = {
     },
 
     sendEverybody: function(message) {
-        for (var i = 0; i < this.addressees.length; ++i) {
+        for (let i = 0; i < this.addressees.length; ++i) {
             if (this.addressees[i]) {
                 this.sendToPlayer(message, this.addressees[i]);
             }
@@ -48,7 +51,7 @@ WebsocketService.prototype = {
     },
 
     sendSpecificPlayers: function(message, addressesIndexes) {
-        for (var i = 0; i < addressesIndexes.length; ++i) {
+        for (let i = 0; i < addressesIndexes.length; ++i) {
             if (this.addressees[addressesIndexes[i]]) {
                 this.sendToPlayer(message, this.addressees[addressesIndexes[i]]);
             }
@@ -84,7 +87,6 @@ WebsocketService.prototype = {
                 };
                 if (player.shoot(parsedMessage.particle, shotPos,
                         self.gamemechanics.context.freeProtons,
-                        self.gamemechanics.context.garbage,
                         self.gamemechanics.context.engine)) {
                     self.sendEverybody(Messages.shotFired(parsedMessage.particle, player.body.id));
                     if (parsedMessage.particle == 'p') {

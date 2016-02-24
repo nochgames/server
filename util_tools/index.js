@@ -2,11 +2,13 @@
  * Created by fatman on 09/02/16.
  */
 
-Util_tools = {
+'use strict';
+
+var Util_tools = {
     parseCoordinates: function(array) {
         var parsedArray = [];
-        for (var i = 0; i < array.length; ++i) {
-            for (var key in array[i]) {
+       for (let i = 0; i < array.length; ++i) {
+           for (let key in array[i]) {
                 parsedArray.push(array[i][key]);
             }
         }
@@ -15,7 +17,7 @@ Util_tools = {
 
     isEmpty: function(obj) {
 
-        for (var key in obj) {
+       for (let key in obj) {
             if (obj.hasOwnProperty(key)) return false;
         }
 

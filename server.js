@@ -20,4 +20,4 @@ gamemechanics.configureEmitter();
 gamemechanics.game_map.createFullBorder();
 gamemechanics.createGarbage(0.000008);
 gamemechanics.run();
-
+gamemechanics.logMemoryUsage();

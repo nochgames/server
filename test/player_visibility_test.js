@@ -1,6 +1,8 @@
 /**
  * Created by fatman on 21/02/16.
  */
+    
+'use strict';
 
 var WebsocketService = require("../websocketservice/index");
 var Gamemechanics = require('../gamemechanics/index');
@@ -22,17 +24,17 @@ describe('gamemechanics.checkGarbageVisibility', function() {
         it('should send add to to playersWhoSee array every particle in screen,' +
             ' and all chemicalParents of every object too', function () {
             var context = new Context({}, {}, {}, websocketservice);
-            for (var i = 0; i < particlesNumber; ++i) {
+            for (let i = 0; i < particlesNumber; ++i) {
                 var garbage = { body: { playersWhoSee: [] } };
                 var currentGarbage = garbage.body;
-                for (var j = 0; j < parentsNumber; ++j) {
+                for (let j = 0; j < parentsNumber; ++j) {
                     currentGarbage.chemicalParent = {};
                     currentGarbage = currentGarbage.chemicalParent;
                 }
                 context.garbage.push(garbage);
             }
             var inScreen = sinon.stub();
-            for (var i = 0; i < playersNumber; ++i) {
+            for (let i = 0; i < playersNumber; ++i) {
                 context.players.push({ isReady: isReady, inScreen: inScreen });
             }
             websocketservice.sendToPlayer = sinon.stub();
@@ -69,13 +71,13 @@ describe('gamemechanics.checkGarbageVisibility', function() {
 
         var inScreen = sinon.stub();
 
-        for (var i = 0; i < playersNumber; ++i) {
+        for (let i = 0; i < playersNumber; ++i) {
             context.players.push({ inScreen: inScreen });
         }
 
-        for (var i = 0; i < particlesNumber; ++i) {
+        for (let i = 0; i < particlesNumber; ++i) {
             var garbage = { body: { playersWhoSee: [], id: i } };
-            for (var j = 0; j < playersWhoSeeQuantitiy; ++j) {
+            for (let j = 0; j < playersWhoSeeQuantitiy; ++j) {
                 garbage.body.playersWhoSee.push(j);
                 websocketservice.sendToPlayer.withArgs(
                     Messages.deleteParticle(i), context.players[j]);
@@ -87,27 +89,27 @@ describe('gamemechanics.checkGarbageVisibility', function() {
         inScreen.returns(false);
         gamemechanics.checkGarbageVisibility();
 
-        for (var i = 0; i < particlesNumber; ++i) {
-            for (var j = 0; j < playersWhoSeeQuantitiy; ++j) {
+        for (let i = 0; i < particlesNumber; ++i) {
+            for (let j = 0; j < playersWhoSeeQuantitiy; ++j) {
                 assert(websocketservice.sendToPlayer.withArgs(
                     Messages.deleteParticle(i), context.players[j]).called);
             }
         }
 
-        for (var i = 0; i < particlesNumber; ++i) {
+        for (let i = 0; i < particlesNumber; ++i) {
             assert(!context.garbage[i].body.playersWhoSee.length);
         }
     });
 
     it('should delete players who let the server', function() {
         var particlesNumber = 10;
-        var playersWhoSeeQuantitiy = 9;
+        var playersWhoSeeQuantity = 9;
 
         var context = new Context({}, {}, {}, websocketservice);
 
-        for (var i = 0; i < particlesNumber; ++i) {
+        for (let i = 0; i < particlesNumber; ++i) {
             var garbage = { body: { playersWhoSee: [] } };
-            for (var j = 0; j < playersWhoSeeQuantitiy; ++j) {
+            for (let j = 0; j < playersWhoSeeQuantity; ++j) {
                 garbage.body.playersWhoSee.push(j);
             }
             context.garbage.push(garbage);
@@ -116,7 +118,7 @@ describe('gamemechanics.checkGarbageVisibility', function() {
         gamemechanics.context = context;
         gamemechanics.checkGarbageVisibility();
 
-        for (var i = 0; i < particlesNumber; ++i) {
+        for (let i = 0; i < particlesNumber; ++i) {
             assert(!context.garbage[i].body.playersWhoSee.length);
         }
     })

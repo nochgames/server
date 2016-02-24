@@ -2,6 +2,8 @@
  * Created by fatman on 10/02/16.
  */
 
+'use strict';
+
 var Messages = require("../messages");
 var Matter = require('matter-js/build/matter.js');
 var Engine = Matter.Engine,
@@ -16,7 +18,7 @@ var CollisionHandler = function(context) {
     var self = this;
     Matter.Events.on(context.engine, 'collisionStart', function(event) {
         var pairs = event.pairs;
-        for (var i = 0; i < pairs.length; i++) {
+        for (let i = 0; i < pairs.length; i++) {
             var bodyA = pairs[i].bodyA;
             var bodyB = pairs[i].bodyB;
 
@@ -119,10 +121,6 @@ CollisionHandler.prototype = {
     },
 
     connectGarbageToPlayer: function(playerBody, garbageBody) {
-        if (this.context.recyclebin.ghosts.indexOf(garbageBody) != -1
-            || this.context.recyclebin.ghosts.indexOf(playerBody) != -1) {
-            console.log("dead man tell no tales");
-        }
 
         this.context.getMainObject(garbageBody).reverse();
         this.context.getMainObject(garbageBody).prepareForBond();
@@ -139,16 +137,13 @@ CollisionHandler.prototype = {
 
         this.context.playersEmitter.emit('player died', { player: this.context.getPlayer(garbageBody) });
 
-        this.context.getPlayer(garbageBody).lose(
-            this.context.engine, this.context.players, this.context.garbage, playerBody);
+        this.context.getPlayer(garbageBody).lose(this.context.engine,
+            this.context.players, this.context.garbage, playerBody);
         this.context.getMainObject(garbageBody).reverse();
         this.createBond(playerBody, garbageBody);
     },
 
     collideWithProton: function(elementBody, protonBody) {
-        if (this.context.recyclebin.ghosts.indexOf(elementBody) != -1) {
-            console.log("dead man tell no tales");
-        }
 
         this.context.getMainObject(elementBody).changeCharge(1, this.context.engine, this.context.freeProtons);
         this.context.websocketservice.sendEverybody(Messages.changeElementGarbage(elementBody.id, elementBody.element));
@@ -158,9 +153,6 @@ CollisionHandler.prototype = {
     },
 
     collideWithNeutron: function(elementBody, neutronBody) {
-        if (this.context.recyclebin.ghosts.indexOf(elementBody) != -1) {
-            console.log("dead man tell no tales");
-        }
 
         if (Math.sqrt(neutronBody.velocity.x * neutronBody.velocity.x +
                 neutronBody.velocity.y * neutronBody.velocity.y) < 7) {
@@ -185,10 +177,6 @@ CollisionHandler.prototype = {
     },
 
     collideWithGarbage: function(playerBody, garbageBody) {
-        if (this.context.recyclebin.ghosts.indexOf(garbageBody) != -1
-            || this.context.recyclebin.ghosts.indexOf(playerBody) != -1) {
-            console.log("dead man tell no tales");
-        }
 
         if (playerBody.getFreeBonds() && garbageBody.getFreeBonds()) {
             this.connectGarbageToPlayer(playerBody, garbageBody);
@@ -201,10 +189,6 @@ CollisionHandler.prototype = {
     },
 
     collidePVP: function(playerBodyA, playerBodyB) {
-        if (this.context.recyclebin.ghosts.indexOf(playerBodyB) != -1
-            || this.context.recyclebin.ghosts.indexOf(playerBodyA) != -1) {
-            console.log("dead man tell no tales");
-        }
 
         if (playerBodyA.playerNumber == playerBodyB.playerNumber) return;
         if (playerBodyA.getFreeBonds() && playerBodyB.getFreeBonds()) {

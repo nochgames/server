@@ -2,6 +2,8 @@
  * Created by fatman on 01/02/16.
  */
 
+'use strict';
+
 var Matter = require('matter-js/build/matter.js');
 var Engine = Matter.Engine,
     World = Matter.World,
@@ -19,14 +21,14 @@ var Map = function(engine) {
 
 Map.prototype = {
     createFullBorder: function() {
-        var BORDER_PART_LENGTH = params.getParameter("borderPartLength");
-        var BORDER_PART_HEIGHT = params.getParameter("borderPartHeight");
+        const BORDER_PART_LENGTH = params.getParameter("borderPartLength");
+        const BORDER_PART_HEIGHT = params.getParameter("borderPartHeight");
 
         var center = { x: this.radius, y: this.radius };
 
         var step = Math.asin(BORDER_PART_LENGTH / 2 / this.radius) * 2;
 
-        for (var i = step / 2; i <= Math.PI * 2; i += step) {
+        for (let i = step / 2; i <= Math.PI * 2; i += step) {
             var borderBody =
                 Bodies.rectangle(center.x - this.radius * Math.cos(i),
                     center.y - this.radius * Math.sin(i),
