@@ -123,11 +123,8 @@ Player.prototype = {
 
     lose: function(engine, playersArray, garbageArray, newPlayerBody) {
 
-        try {
-            this.websocketservice.closeSocket(Messages.notifyDeath(true), this);
-        } catch(e) {
-            console.log("already closed");
-        }
+        this.websocketservice.closeSocket(Messages.notifyDeath(true), this);
+
         delete (this.ws);
         if (newPlayerBody) {
             this.garbagify(playersArray, garbageArray, newPlayerBody);

@@ -8,6 +8,10 @@ var WebSocketServer = new require('ws');
 var Messages = require("../messages");
 
 var WebsocketService = function(gamemechanics) {
+    this.onCloseMap = new Map();
+    this.onMessageMap = new Map();
+    this.onErrorMap = new Map();
+
     this.webSocketServer = new WebSocketServer.Server({
         port: 8085
     });
@@ -19,9 +23,12 @@ var WebsocketService = function(gamemechanics) {
     this.webSocketServer.on('connection', function(ws) {
         var player = gamemechanics.addPlayer(ws);
 
-        ws.on('message', self.createDoOnMessage(player));
-        ws.on('error', self.createDoOnError(player));
-        ws.on('close', self.createDoOnClose(player));
+        self.onMessageMap.set(player, self.createDoOnMessage(player));
+        self.onCloseMap.set(player, self.createDoOnClose(player));
+        self.onErrorMap.set(player, self.createDoOnError(player));
+        ws.on('message', self.onMessageMap.get(player));
+        ws.on('error', self.onErrorMap.get(player));
+        ws.on('close', self.onCloseMap.get(player));
     });
 
     console.log('The server is running');
@@ -29,8 +36,9 @@ var WebsocketService = function(gamemechanics) {
 
 WebsocketService.prototype = {
     sendToPlayer: function(message, reciever, event_name) {
+        message = JSON.stringify(message);
         try {
-            reciever.ws.send(JSON.stringify(message));
+            reciever.ws.send(message);
         } catch(e) {
             console.log('Unable to send ' + message +
                 ' to player. Player is\n' + reciever + '\n' + e);
@@ -39,7 +47,13 @@ WebsocketService.prototype = {
 
     closeSocket: function(lastMessage, reciever) {
         this.sendToPlayer(lastMessage, reciever);
-        //reciever.ws.close();
+        reciever.ws.removeListener('message', this.onMessageMap.get(reciever));
+        reciever.ws.removeListener('error', this.onErrorMap.get(reciever));
+        reciever.ws.removeListener('close', this.onCloseMap.get(reciever));
+        this.onCloseMap.delete(reciever);
+        this.onErrorMap.delete(reciever);
+        this.onCloseMap.delete(reciever);
+        reciever.ws.close();
     },
 
     sendEverybody: function(message) {

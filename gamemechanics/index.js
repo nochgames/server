@@ -423,19 +423,22 @@ GameMechanics.prototype = {
     logMemoryUsage: function() {
         var min = Infinity;
         var max = 0;
-        let time = new Date();
-        let sec = time.getSeconds();
-        let minutes = time.getMinutes();
+        let start = new Date().getTime();
 
         this.intervals.push(setInterval(function() {
-            console.log(`Server is active ${new Date().getMinutes() - minutes
-                } minutes`);
+            let now = new Date().getTime();
+            let secondsPassed = (now - start) / 1000;
+
+            console.log(`Server is active ${
+            Math.floor(secondsPassed / 60) } minutes ${
+                (secondsPassed % 60).toFixed(5)
+                } seconds`);
             var usage = process.memoryUsage().heapUsed;
             if (usage < min) min = usage;
             if (usage > max) max = usage;
-            console.log(usage + ' (min: '
+            console.log("Heap used: " + usage + ' (min: '
                 + min + ', max: ' + max + ')');
-        }, 25000));
+        }, 30000));
     }
 };
 
