@@ -1,6 +1,9 @@
 /**
  * Created by fatman on 08/02/16.
  */
+
+'use strict';
+
 var Matter = require('matter-js/build/matter.js');
 
 var GameMechanics = require("./gamemechanics");
@@ -20,4 +23,4 @@ gamemechanics.configureEmitter();
 gamemechanics.game_map.createFullBorder();
 gamemechanics.createGarbage(0.000008);
 gamemechanics.run();
-gamemechanics.logMemoryUsage();
+playersEmitter.on('no players', (event) => { gamemechanics.stop(); });

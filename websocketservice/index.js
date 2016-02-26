@@ -21,6 +21,7 @@ var WebsocketService = function(gamemechanics) {
 
     var self = this;
     this.webSocketServer.on('connection', function(ws) {
+        if (!gamemechanics.isRunning) gamemechanics.run();
         var player = gamemechanics.addPlayer(ws);
 
         self.onMessageMap.set(player, self.createDoOnMessage(player));

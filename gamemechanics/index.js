@@ -30,6 +30,8 @@ var GameMechanics = function(playersEmitter) {
     engine.world.gravity.y = 0;
     engine.enableSleeping = true;
 
+    this.isRunning = false;
+
     this.game_map = new GameMap(engine);
     
     this.colors = ["green", "blue", "yellow", "purple", "orange"];
@@ -232,25 +234,6 @@ GameMechanics.prototype = {
                     this.context.players[j].inScreen(objects[i], 500)) {
 
                     var addedSuccessfully = this.addPlayerWhoSee(objects[i], j);
-                    if (addedSuccessfully) {
-                        var currentBody = objects[i].body;
-
-                        //TODO: make new system
-                        /*while (currentBody.chemicalParent && addedSuccessfully) {
-                            var secondBody = currentBody.chemicalParent;
-    
-                            if (currentBody.chemicalParent.inGameType != 'player') {
-                                addedSuccessfully = this.addPlayerWhoSee(
-                                    this.context.getMainObject(secondBody), j);
-                            } else {
-                                addedSuccessfully = false;
-                            }
-                            this.context.websocketservice.sendToPlayer(
-                                Messages.newBondOnScreen(currentBody.id, secondBody.id),
-                                this.context.players[j]);
-                            currentBody = secondBody;
-                        }*/
-                    }
                 }
             }
             var playersWhoSee = objects[i].body.playersWhoSee;
@@ -336,9 +319,6 @@ GameMechanics.prototype = {
     },
 
     updateActiveGarbage: function() {
-        var realPlayers = this.context.players.filter(player => {
-            return player;
-        });
 
         var particlesActive = this.context.garbageActive
             .concat(this.context.freeProtons.filter(particle => {
@@ -347,13 +327,13 @@ GameMechanics.prototype = {
             return particle.body;
         }));
 
-        for (let i = 0; i < realPlayers.length; ++i) {
+        for (let i = 0; i < this.context.players.length; ++i) {
+            if (!this.context.players[i]) continue;
             var garbageToSend = [];
-            var playerIndex = this.context.players.indexOf(realPlayers[i]);
             for (let j = 0; j < particlesActive.length; ++j) {
-                var realPlayerIndex = particlesActive[j].playersWhoSee
-                    .indexOf(playerIndex);
-                if (realPlayerIndex != -1) {
+                var playerWhoSeeIndex = particlesActive[j].playersWhoSee
+                    .indexOf(i);
+                if (playerWhoSeeIndex != -1) {
                     var position = particlesActive[j].position;
                     if (position) {
                         position = Util_tools.ceilPosition(position);
@@ -366,49 +346,40 @@ GameMechanics.prototype = {
             if (garbageToSend.length)
                 this.context.websocketservice.sendToPlayer(
                     Messages.activeGarbageUpdate(garbageToSend),
-                    this.context.players[playerIndex]);
+                    this.context.players[i]);
         }
     },
 
     run: function() {
         var self = this;
+
         this.intervals.push(setInterval(function() {
+            if (!self.context.players.filter(player =>
+                { return player; }).length) self.context.playersEmitter.emit('no players');
+
             Matter.Engine.update(self.context.engine, self.context.engine.timing.delta);
             self.recyclebin.empty();
             self.sendToAllPlayers();
+            self.updateActiveGarbage();
             self.updatePlayersStats();
         }, 1000 / 60));
 
         this.intervals.push(setInterval(function() {
-            self.updateActiveGarbage();
-        }, 1000 / 60));
-
-        this.intervals.push(setInterval(function() {
             self.checkGarbageVisibility();
-            var unique = [];
-            var numbers = self.context.garbage.map(gb => {
-                if (gb) {
-                    return gb.body.number;
-                }
-                return null;
-            }).filter(gb => { return gb; });
-            for (let i = 0; i < numbers.length; ++i) {
-                if (unique.indexOf(numbers[i]) == -1) {
-                    unique.push(numbers[i]);
-                }
-            }
-            if (numbers.length != unique.length) {
-                console.log(unique);
-                console.log(numbers);
-                throw new Error('Incorrect behaviour');
-            }
         }, 1000));
+
+        this.logMemoryUsage();
+
+        this.isRunning = true;
+        console.log('game loop started');
     },
 
     stop: function() {
         for (let i = 0; i < this.intervals.length; ++i) {
           clearInterval(this.intervals[i]);
         }
+        this.isRunning = false;
+        console.log('game loop stopped');
     },
 
     logGA: function() {

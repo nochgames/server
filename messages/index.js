@@ -1,6 +1,9 @@
 /**
  * Created by fatman on 09/02/16.
  */
+
+'use strict';
+
 var API_NOCH = require("./api");
 
 var Messages = {
@@ -38,10 +41,12 @@ var Messages = {
     },
 
     newBondOnScreen: function(firstBondedBodyId, secondBondedBodyId) {
-        var message = {};
-        message[API_NOCH.getCode("first id in bond")] = firstBondedBodyId;
-        message[API_NOCH.getCode("second id in bond")] = secondBondedBodyId;
-        return message;
+
+        let first = firstBondedBodyId < secondBondedBodyId ? firstBondedBodyId : secondBondedBodyId;
+        let second = firstBondedBodyId > secondBondedBodyId ? firstBondedBodyId : secondBondedBodyId;
+
+        return {[API_NOCH.getCode("first id in bond")]: first,
+                [API_NOCH.getCode("second id in bond")]: second }
     },
 
     deleteParticle: function(idToDelete) {
@@ -58,10 +63,11 @@ var Messages = {
     },
 
     deleteBond: function(firstBondBodyId, secondBondBodyId) {
-        var message = {};
-        message[API_NOCH.getCode("first id in bond to delete")] = firstBondBodyId;
-        message[API_NOCH.getCode("second id in bond to delete")] = secondBondBodyId;
-        return message;
+        let first = firstBondBodyId < secondBondBodyId ? firstBondBodyId : secondBondBodyId;
+        let second = firstBondBodyId > secondBondBodyId ? firstBondBodyId : secondBondBodyId;
+
+        return {[API_NOCH.getCode("first id in bond to delete")]: first,
+                [API_NOCH.getCode("second id in bond to delete")]: second }
     },
 
     deletePlayer: function(playerId) {
