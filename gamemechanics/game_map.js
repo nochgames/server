@@ -24,12 +24,12 @@ Map.prototype = {
         const BORDER_PART_LENGTH = params.getParameter("borderPartLength");
         const BORDER_PART_HEIGHT = params.getParameter("borderPartHeight");
 
-        var center = { x: this.radius, y: this.radius };
+        const center = { x: this.radius, y: this.radius };
 
         var step = Math.asin(BORDER_PART_LENGTH / 2 / this.radius) * 2;
 
         for (let i = step / 2; i <= Math.PI * 2; i += step) {
-            var borderBody =
+            let borderBody =
                 Bodies.rectangle(center.x - this.radius * Math.cos(i),
                     center.y - this.radius * Math.sin(i),
                     BORDER_PART_HEIGHT, BORDER_PART_LENGTH, { isStatic: true,
