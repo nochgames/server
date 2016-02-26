@@ -69,21 +69,11 @@ RecycleBin.prototype = {
             clearTimeout(body.timerId2);
         }
 
+        delete body.events;
+
         Util_tools.deleteFromArray(this.context.garbageActive, body);
         World.remove(this.context.engine.world, body);
-        if (this.context.getArray(body)[body.number].body.id != body.id) {
-            console.log(this.context.getArray(body)[body.number]);
-            console.log('\n==================================\n');
-            console.log(body);
-            var numbers = this.context.garbage.map(function(gb) {
-                if (gb) {
-                    return gb.body.number;
-                }
-                return null;
-            });
-            //console.log(numbers);
-            throw new Error('incorrect behaviour');
-        }
+
         delete this.context.getArray(body)[body.number];
     },
 

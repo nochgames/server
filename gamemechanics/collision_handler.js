@@ -136,10 +136,10 @@ CollisionHandler.prototype = {
         var garbageBody = massA < massB ? bodyA : bodyB;
 
         this.context.playersEmitter.emit('player died', { player: this.context.getPlayer(garbageBody) });
-
         this.context.getPlayer(garbageBody).lose(this.context.engine,
             this.context.players, this.context.garbage, playerBody);
         this.context.getMainObject(garbageBody).reverse();
+
         this.createBond(playerBody, garbageBody);
     },
 
@@ -165,6 +165,7 @@ CollisionHandler.prototype = {
 
     collideWithBorder: function(body) {
         if (body.inGameType == "player") {
+            this.context.playersEmitter.emit('player died', { player: this.context.getPlayer(body) });
             this.context.players[body.number].die(this.context.engine);
             this.context.players[body.number].lose(this.context.engine,
                 this.context.players, this.context.garbage);

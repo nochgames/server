@@ -90,6 +90,9 @@ GameMechanics.prototype = {
 
         this.notifyAndInformNewPlayer(player);
 
+        //Most player bodies never sleep, so they never throw
+        //sleepEnd event so they can't be in garbageActive array
+        this.context.garbageActive.push(player.body);
         this.subscribeToSleepStart(player.body);
         this.subscribeToSleepEnd(player.body);
 
@@ -282,10 +285,9 @@ GameMechanics.prototype = {
             objects = objects.filter(obj => {
                 return obj;
             });
-            /*for (let i = 0; i < objects.length; ++i) {
+            for (let i = 0; i < objects.length; ++i) {
                 Util_tools.deleteFromArray(objects[i].body.playersWhoSee, playerId);
-            }*/
-            console.log('player died');
+            }
         });
 
         self.context.playersEmitter.on('particle died', function(event) {
@@ -311,17 +313,17 @@ GameMechanics.prototype = {
             self.context.websocketservice.sendSpecificPlayers(
                 Messages.newBondOnScreen(event.bc1.id, event.bc2.id),
                 playersWhoSee);
-
         });
 
 
         self.context.playersEmitter.on('decoupled', function(event) {
-            var playersWhoSee = event.decoupledBodyB.inGameType != 'player' ?
-                event.decoupledBodyB.playersWhoSee : event.decoupledBodyA.playersWhoSee;
             self.context.websocketservice.sendSpecificPlayers(
                 Messages.deleteBond(event.decoupledBodyA.id, event.decoupledBodyB.id),
-                playersWhoSee);
+                event.decoupledBodyA.playersWhoSee);
 
+            self.context.websocketservice.sendSpecificPlayers(
+                Messages.deleteBond(event.decoupledBodyA.id, event.decoupledBodyB.id),
+                event.decoupledBodyB.playersWhoSee);
         });
     },
 
@@ -379,7 +381,6 @@ GameMechanics.prototype = {
 
         this.intervals.push(setInterval(function() {
             self.updateActiveGarbage();
-
         }, 1000 / 60));
 
         this.intervals.push(setInterval(function() {
@@ -410,6 +411,15 @@ GameMechanics.prototype = {
         }
     },
 
+    logGA: function() {
+        var self = this;
+        setInterval(function() {
+            console.log('ga: ' + self.context.garbageActive.map(ga =>
+                    { return ga.id }
+                ).sort());
+        }, 400)
+    },
+
     logMemoryUsage: function() {
         var min = Infinity;
         var max = 0;
@@ -419,7 +429,7 @@ GameMechanics.prototype = {
 
         setInterval(function() {
             console.log(`Server is active ${new Date().getMinutes() - minutes
-                } minutes ${new Date().getSeconds() - sec} seconds`);
+                } minutes`);
             var usage = process.memoryUsage().heapUsed;
             if (usage < min) min = usage;
             if (usage > max) max = usage;
