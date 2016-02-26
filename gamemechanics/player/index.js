@@ -133,13 +133,14 @@ Player.prototype = {
             this.garbagify(playersArray, garbageArray, newPlayerBody);
         } else {
             this.garbagify(playersArray, garbageArray);
-            //this.die(engine);
+            this.die(engine);
         }
     },
 
     //turns player into garbage before appending it to another player
     garbagify: function(playersArray, garbageArray, newPlayerBody) {
 
+        var playerIndex = this.body.playerNumber;
         garbageArray.push(this);
         this.body.number = garbageArray.indexOf(this);
 
@@ -157,14 +158,7 @@ Player.prototype = {
         delete (this.body.realRadius);
         delete (this.body.coefficient);
         delete (this.body.resolution);
-        this.body.wasPlayer = 'lose';
 
-        var playerIndex = playersArray.map(function(pl) {
-            if (pl) {
-                return pl.body.id;
-            }
-            return null;
-        }).indexOf(this.body.id);
         if (playerIndex > -1) {
             delete playersArray[playerIndex];
         } else {
@@ -189,7 +183,7 @@ Player.prototype = {
 
         var pos1 = this.body.position;
 
-        //TODO: finally make the whole thing move
+        //TODO: make players move properly
         this.traversDST(this.body, function(body) {
             body.force = { x: 0, y: 0 };
             body.torque = 0;

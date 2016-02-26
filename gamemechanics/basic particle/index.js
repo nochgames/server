@@ -105,7 +105,6 @@ BasicParticle.prototype = {
     free: function(node, engine) {
         clearInterval(node.intervalID);
         node.collisionFilter.mask = 0x0001;
-        if(node.inGameType == 'player') node.wasPlayer = 'free';
         //node.inGameType = "temporary undefined";
 
         if (node.constraint1) {
@@ -303,7 +302,6 @@ BasicParticle.prototype = {
     checkDecoupling: function(momentum, engine) {
         var bondStrength = 30;
         if (momentum > bondStrength && this.body.chemicalBonds) {
-            //if (this.body.inGameType == 'player') throw new Error('Incorrect behaviour');
             this.traversDST(this.body, this.free, this.letGo, engine);
             if (this.body.player) {
                 this.body.player.checkResizeShrink();

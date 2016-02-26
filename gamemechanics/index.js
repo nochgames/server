@@ -413,11 +413,11 @@ GameMechanics.prototype = {
 
     logGA: function() {
         var self = this;
-        setInterval(function() {
+        this.intervals.push(setInterval(function() {
             console.log('ga: ' + self.context.garbageActive.map(ga =>
                     { return ga.id }
                 ).sort());
-        }, 400)
+        }, 400));
     },
 
     logMemoryUsage: function() {
@@ -427,7 +427,7 @@ GameMechanics.prototype = {
         let sec = time.getSeconds();
         let minutes = time.getMinutes();
 
-        setInterval(function() {
+        this.intervals.push(setInterval(function() {
             console.log(`Server is active ${new Date().getMinutes() - minutes
                 } minutes`);
             var usage = process.memoryUsage().heapUsed;
@@ -435,7 +435,7 @@ GameMechanics.prototype = {
             if (usage > max) max = usage;
             console.log(usage + ' (min: '
                 + min + ', max: ' + max + ')');
-        }, 25000);
+        }, 25000));
     }
 };
 
