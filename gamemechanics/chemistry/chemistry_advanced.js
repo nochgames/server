@@ -76,9 +76,17 @@ class ChemistryAdvanced {
         return player.resultDST(player.body, checkFunction, garbageBody)
     }
 
+    getColorForPlayer(body, playNumber) {
+        if (this.checkParticleAvailabilityForPlayer(body, playNumber)) {
+            return 'green';
+        }
+        return 'grey'
+    }
+
     checkConnectingPossibility(bodyA, bodyB) {
         if (bodyA.getFreeBonds() && bodyB.getFreeBonds()) {
-            let bond = this.getBondParams(bodyA, bodyB);
+            let bond = params.getParameter(([bodyA.element,
+                bodyB.element].sort()).join(''));
 
             if (bond && (bodyA.energy - bond[bodyA.element]) >= 0 &&
                 (bodyB.energy - bond[bodyB.element]) >= 0) {

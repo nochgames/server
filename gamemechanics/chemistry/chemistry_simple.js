@@ -86,6 +86,10 @@ class ChemistrySimple {
     checkParticleAvailabilityForPlayer() {
         return NaN;
     }
+
+    getColorForPlayer() {
+
+    }
 }
 
 module.exports = ChemistrySimple;

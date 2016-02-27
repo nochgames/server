@@ -13,7 +13,7 @@ var Garbage = require("./garbage");
 var Player = require('./player');
 var GameMap = require('./game_map');
 var CollisionHandler = require('./collision_handler');
-var Chemistry = require('./chemistry/chemistry_simple');
+var Chemistry = require('./chemistry/chemistry_advanced');
 
 var Engine = Matter.Engine,
     World = Matter.World,
@@ -211,14 +211,14 @@ GameMechanics.prototype = {
 
         switch (object.body.inGameType) {
             case 'playerPart':
-                message = Messages.newParticleOnScreen(
-                    pos, object.body.id, object.body.element);
+                message = Messages.newAvailableParticleOnScreen(
+                    pos, object.body.id, object.body.element, 'white');
                 this.sendAllBonds(object, playerNumber);
                 break;
             case 'garbage':
                 message = Messages.newAvailableParticleOnScreen(
                     pos, object.body.id, object.body.element,
-                    this.context.chemistry.checkParticleAvailabilityForPlayer(object, playerNumber)
+                    this.context.chemistry.getColorForPlayer(object, playerNumber)
                 );
                 this.sendAllBonds(object, playerNumber);
                 break;
@@ -423,7 +423,7 @@ GameMechanics.prototype = {
             Math.floor(secondsPassed / 60) } minutes ${
                 (secondsPassed % 60).toFixed(5)
                 } seconds`);
-            var usage = process.memoryUsage().heapUsed;
+            let usage = process.memoryUsage().heapUsed;
             if (usage < min) min = usage;
             if (usage > max) max = usage;
             console.log("Heap used: " + usage + ' (min: '
