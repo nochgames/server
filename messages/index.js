@@ -32,6 +32,16 @@ var Messages = {
         return message;
     },
 
+    newAvailableParticleOnScreen: function(position, particleId, element, canConnect) {
+        var message = {};
+        message[API_NOCH.getCode("position")] = position;
+        message[API_NOCH.getCode("particle id")] = particleId;
+        message[API_NOCH.getCode("element")] = element;
+        if (canConnect == canConnect)
+            message[API_NOCH.getCode("availability")] = canConnect;
+        return message;
+    },
+
     newBorderOnScreen: function(position, borderId, angle) {
         var message = {};
         message[API_NOCH.getCode("position")] = position;
@@ -95,7 +105,7 @@ var Messages = {
         return message;
     },
 
-    changeCoeficient: function(coefficient) {
+    changeCoefficient: function(coefficient) {
         var message = {};
         message[API_NOCH.getCode("coefficient")] = coefficient;
         return message;
@@ -105,6 +115,14 @@ var Messages = {
         var message = {};
         message[API_NOCH.getCode("player is dead")] = value;
         return message;
+    },
+
+    newGarbageAvailable: function(availableGarbageID) {
+        return {[API_NOCH.getCode("garbage available")]: availableGarbageID }
+    },
+
+    garbageIsNotAvailableAnymore: function(notAvailableGarbage) {
+        return {[API_NOCH.getCode("garbage not available")]: notAvailableGarbage }
     }
 };
 

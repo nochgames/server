@@ -111,7 +111,8 @@ CollisionHandler.prototype = {
 
             garbageBody.collisionFilter.mask = 0x0001;
 
-            context.playersEmitter.emit('bond created', {bc1: playerBody, bc2: garbageBody});
+            context.playersEmitter.emit('bond created',
+                {bc1: playerBody, bc2: garbageBody, p: context.getPlayer(playerBody)});
         }
     },
 
@@ -179,8 +180,11 @@ CollisionHandler.prototype = {
 
     collideWithGarbage: function(playerBody, garbageBody) {
 
-        if (playerBody.getFreeBonds() && garbageBody.getFreeBonds()) {
-            this.connectGarbageToPlayer(playerBody, garbageBody);
+        let bodyToConnect = this.context.chemistry
+            .findBodyToConnect(playerBody, garbageBody);
+
+        if (bodyToConnect) {
+            this.connectGarbageToPlayer(bodyToConnect, garbageBody);
         } else if (playerBody.inGameType  == "playerPart"){
             var momentum = this.calculateMomentum(playerBody, garbageBody);
 
@@ -192,7 +196,7 @@ CollisionHandler.prototype = {
     collidePVP: function(playerBodyA, playerBodyB) {
 
         if (playerBodyA.playerNumber == playerBodyB.playerNumber) return;
-        if (playerBodyA.getFreeBonds() && playerBodyB.getFreeBonds()) {
+        if (this.context.chemistry.checkConnectingPossibility(playerBodyA, playerBodyB)) {
             this.connectPlayers(playerBodyA, playerBodyB);
         } else {
             var momentum = this.calculateMomentum(playerBodyA, playerBodyB);

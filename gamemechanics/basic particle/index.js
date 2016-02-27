@@ -17,7 +17,7 @@ var Engine = Matter.Engine,
     Composite = Matter.Composite,
     Vector = Matter.Vector;
 
-var BasicParticle = function(position, engine, elem, emitter) {
+var BasicParticle = function(position, engine, elem, emitter, chemistry) {
     this.CHARGE_RADIUS = 5;
 
     //creating physics body for player
@@ -33,7 +33,10 @@ var BasicParticle = function(position, engine, elem, emitter) {
     this.body.emitter = emitter;
     this.body.playersWhoSee = [];
 
-    this.setElement(elem);
+    this.body.energy = 0;
+
+    this.body.chemistry = chemistry;
+    chemistry.setElement(elem, this);
 
     this.body.bondAngles = [];
     var angle = 0;
@@ -77,6 +80,25 @@ BasicParticle.prototype = {
         if (visitAgain) {
             visitAgain(node);
         }
+    },
+
+    resultDST: function(node, visit, additionalParameter) {
+        var result = visit(node, additionalParameter);
+        if (result) {
+            return result
+        }
+        if (!node.chemicalChildren) {
+            return false;
+        }
+        for (var i = 0; i < node.chemicalChildren.length; ++i) {
+            if (node.chemicalChildren[i]) {
+                result = this.resultDST(node.chemicalChildren[i], visit, additionalParameter);
+                if (result) {
+                    return result;
+                }
+            }
+        }
+        return false;
     },
 
     //second part of disconnecting body from player
@@ -135,6 +157,9 @@ BasicParticle.prototype = {
         if (node.chemicalParent) {
             node.emitter.emit('decoupled', { decoupledBodyA: node.chemicalParent,
                                             decoupledBodyB: node });
+
+            node.chemistry.balanceEnergy(node);
+
             delete node.chemicalParent.chemicalChildren[
                 node.chemicalParent.chemicalChildren
                     .indexOf(node)];
@@ -161,7 +186,9 @@ BasicParticle.prototype = {
         }
 
         node.collisionFilter.group = 0;
-        --node.chemicalBonds;
+        if (node.chemicalBonds) {
+            --node.chemicalBonds;
+        }
 
         node.emitter.emit('became garbage', { garbageBody: node });
 
@@ -403,9 +430,9 @@ BasicParticle.prototype = {
         var elementName = elements[elements.indexOf(
             this.body.element) + value];
 
-        this.setElement(elementName);
+        this.body.chemistry.setElement(elementName, this);
 
-        if (this.body.chemicalBonds > this.body.elValency) {
+        while (this.body.chemistry.isImpossible(this.body)) {
             this.dismountBranch(engine);
         }
         for (let i = 0; i < this.body.bondAngles.length; ++i) {

@@ -13,9 +13,9 @@ var Engine = Matter.Engine,
     Body = Matter.Body,
     Composite = Matter.Composite;
 
-var Garbage = function(position, engine, elem, emitter) {
+var Garbage = function(position, engine, elem, emitter, chemistry) {
 
-    basicParticle.call(this, position, engine, elem, emitter);
+    basicParticle.call(this, position, engine, elem, emitter, chemistry);
 
     this.body.frictionAir = 0.003;
 

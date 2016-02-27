@@ -20,5 +20,8 @@
   "id of player who shot n": "shn",
   "garbage id to delete": "dg",
   "coefficient": "coefficient",
-  "player is dead": "dead"
+  "player is dead": "dead",
+  "garbage available": "gbav",
+  "garbage not available": "gbnav",
+  "availability": "av"
 }

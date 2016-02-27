@@ -16,9 +16,9 @@ var Engine = Matter.Engine,
     Composite = Matter.Composite,
     Vector = Matter.Vector;
 
-var Player = function(ws, position, engine, elem, emitter, websocketservice) {
+var Player = function(ws, position, engine, elem, emitter, websocketservice, chemistry) {
 
-    basicParticle.call(this, position, engine, elem, emitter);
+    basicParticle.call(this, position, engine, elem, emitter, chemistry);
 
     this.ws = ws;
     this.websocketservice = websocketservice;
@@ -216,7 +216,7 @@ Player.prototype = {
             this.body.coefficient = this.body.multiplier / Math.sqrt(this.body.realRadius);
             if (this.coefficientTimeOut) clearTimeout(this.coefficientTimeOut);
 
-            this.websocketservice.sendToPlayer(Messages.changeCoeficient(this.body.coefficient), this);
+            this.websocketservice.sendToPlayer(Messages.changeCoefficient(this.body.coefficient), this);
         }
     },
 
@@ -236,7 +236,7 @@ Player.prototype = {
 
         var coefficient = this.body.multiplier / Math.sqrt(this.body.realRadius);
 
-        this.websocketservice.sendToPlayer(Messages.changeCoeficient(coefficient), this);
+        this.websocketservice.sendToPlayer(Messages.changeCoefficient(coefficient), this);
 
         //console.log(self.body.realRadius);
 

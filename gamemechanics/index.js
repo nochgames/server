@@ -13,6 +13,7 @@ var Garbage = require("./garbage");
 var Player = require('./player');
 var GameMap = require('./game_map');
 var CollisionHandler = require('./collision_handler');
+var Chemistry = require('./chemistry/chemistry_simple');
 
 var Engine = Matter.Engine,
     World = Matter.World,
@@ -39,6 +40,8 @@ var GameMechanics = function(playersEmitter) {
     this.context = new Context(engine, playersEmitter, this.recyclebin, this.websocketservice);
     new CollisionHandler(this.context);
     this.recyclebin.context = this.context;
+
+    this.context.chemistry = new Chemistry(this.context);
 };
 
 GameMechanics.prototype = {
@@ -62,7 +65,8 @@ GameMechanics.prototype = {
             var position = this.game_map.getRandomPositionInside(diameter / 2, OFFSET_PLAYER,
                 diameter / 2 - OFFSET_BORDER);
 
-            var singleGarbage = new Garbage(position, this.context.engine, element, this.context.playersEmitter);
+            var singleGarbage = new Garbage(position, this.context.engine, element,
+                                            this.context.playersEmitter, this.context.chemistry);
 
             this.context.garbage.push(singleGarbage);
             this.context.garbageActive.push(singleGarbage.body);
@@ -75,7 +79,7 @@ GameMechanics.prototype = {
     addPlayer: function(ws) {
         var player = new Player(ws, this.game_map.getRandomPositionInside(0, 850),
                                 this.context.engine, "C", this.context.playersEmitter,
-                                this.websocketservice);
+                                this.websocketservice, this.context.chemistry);
 
         var id = this.context.addToArray(this.context.players, player);
 
@@ -184,6 +188,20 @@ GameMechanics.prototype = {
         }
     },
 
+    sendAllBonds: function(object, playerNumber) {
+        for (let i = 0; i < object.body.chemicalChildren.length; ++i) {
+            if (!object.body.chemicalChildren[i]) continue;
+            this.context.websocketservice.sendToPlayer(
+                Messages.newBondOnScreen(object.body.id, object.body.chemicalChildren[i].id),
+                this.context.players[playerNumber]);
+        }
+        if (object.body.chemicalParent) {
+            this.context.websocketservice.sendToPlayer(
+                Messages.newBondOnScreen(object.body.id, object.body.chemicalParent.id),
+                this.context.players[playerNumber]);
+        }
+    },
+
     addPlayerWhoSee: function(object, playerNumber) {
         if (object.body.playersWhoSee.indexOf(playerNumber) != -1) return false;
         object.body.playersWhoSee.push(playerNumber);
@@ -192,21 +210,17 @@ GameMechanics.prototype = {
         var pos = Util_tools.ceilPosition(object.body.position);
 
         switch (object.body.inGameType) {
-            case 'garbage':
             case 'playerPart':
                 message = Messages.newParticleOnScreen(
                     pos, object.body.id, object.body.element);
-                for (let i = 0; i < object.body.chemicalChildren.length; ++i) {
-                    if (!object.body.chemicalChildren[i]) continue;
-                    this.context.websocketservice.sendToPlayer(
-                        Messages.newBondOnScreen(object.body.id, object.body.chemicalChildren[i].id),
-                        this.context.players[playerNumber]);
-                }
-                if (object.body.chemicalParent) {
-                    this.context.websocketservice.sendToPlayer(
-                        Messages.newBondOnScreen(object.body.id, object.body.chemicalParent.id),
-                        this.context.players[playerNumber]);
-                }
+                this.sendAllBonds(object, playerNumber);
+                break;
+            case 'garbage':
+                message = Messages.newAvailableParticleOnScreen(
+                    pos, object.body.id, object.body.element,
+                    this.context.chemistry.checkParticleAvailabilityForPlayer(object, playerNumber)
+                );
+                this.sendAllBonds(object, playerNumber);
                 break;
             case 'Border':
                 message = Messages.newBorderOnScreen(
@@ -282,7 +296,9 @@ GameMechanics.prototype = {
              self.context.websocketservice
                 .sendSpecificPlayers(Messages.changeElementGarbage(event.body.id,
                                         event.body.element),
-                                        event.body.playersWhoSee)
+                                        event.body.playersWhoSee);
+
+            self.context.chemistry.updateGarbageConnectingPossibility();
         });
 
         self.context.playersEmitter.on('bond created', function(event) {
@@ -296,6 +312,9 @@ GameMechanics.prototype = {
             self.context.websocketservice.sendSpecificPlayers(
                 Messages.newBondOnScreen(event.bc1.id, event.bc2.id),
                 playersWhoSee);
+
+            self.context.chemistry.updateGarbageConnectingPossibilityForPlayer(
+                self.context.players.indexOf(event.p))
         });
 
 
