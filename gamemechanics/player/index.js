@@ -16,10 +16,13 @@ var Engine = Matter.Engine,
     Composite = Matter.Composite,
     Vector = Matter.Vector;
 
-var Player = function(ws, position, engine, elem, emitter, websocketservice, chemistry) {
+var Player = function(ws, name, position, engine, elem, emitter, websocketservice, chemistry) {
 
     basicParticle.call(this, position, engine, elem, emitter, chemistry);
 
+    this.name = name;
+
+    this.isStub = false;
     this.ws = ws;
     this.websocketservice = websocketservice;
 
@@ -29,10 +32,14 @@ var Player = function(ws, position, engine, elem, emitter, websocketservice, che
     this.body.inGameType = "player";
     this.body.player = this;
     this.body.realMass = this.body.mass;
-    this.body.coefficient = 1;
+
     this.body.realRadius = this.body.circleRadius;
     this.body.multiplier =  Math.sqrt(this.body.realRadius);
     this.resolution = { width: 0, height: 0 };
+    this.websocketservice.sendToPlayer();
+    this.body.coefficient = 1;
+    this.websocketservice.sendToPlayer(
+        Messages.changeCoefficient(this.body.coefficient), this);
 };
 
 Player.prototype = {

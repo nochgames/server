@@ -47,7 +47,7 @@ Map.prototype = {
 
     getRandomPositionInside: function(areaRadiusMin, areaRadiusMax) {
         if (!areaRadiusMin) areaRadiusMin = 0;
-        if (!areaRadiusMin) areaRadiusMax = this.radius;
+        if (!areaRadiusMax) areaRadiusMax = this.radius;
 
         var angle = Math.random() * 2 * Math.PI;
 

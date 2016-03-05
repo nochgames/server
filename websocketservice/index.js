@@ -22,20 +22,31 @@ var WebsocketService = function(gamemechanics) {
     var self = this;
     this.webSocketServer.on('connection', function(ws) {
         if (!gamemechanics.isRunning) gamemechanics.run();
-        var player = gamemechanics.addPlayer(ws);
 
-        self.onMessageMap.set(player, self.createDoOnMessage(player));
-        self.onCloseMap.set(player, self.createDoOnClose(player));
-        self.onErrorMap.set(player, self.createDoOnError(player));
-        ws.on('message', self.onMessageMap.get(player));
-        ws.on('error', self.onErrorMap.get(player));
-        ws.on('close', self.onCloseMap.get(player));
+
+        var stub = gamemechanics.addPlayerStub(ws);
+
+        self.updateEventListener(ws, 'message', stub, stub, self.onMessageMap,
+                                    self.createDoOnMessageStub(ws, stub));
+        self.updateEventListener(ws, 'error', stub, stub, self.onErrorMap,
+            self.createDeleteStub(stub));
+        self.updateEventListener(ws, 'close', stub, stub, self.onCloseMap,
+            self.createDeleteStub(stub));
     });
 
     console.log('The server is running');
 };
 
 WebsocketService.prototype = {
+    updateEventListener: function(socket, event, oldKey, newKey, map, callback) {
+        if (map.has(oldKey)) {
+            socket.removeListener(event, map.get(oldKey));
+            map.delete(oldKey);
+        }
+        map.set(newKey, callback);
+        socket.on(event, callback);
+    },
+
     sendToPlayer: function(message, reciever, event_name) {
         message = JSON.stringify(message);
         try {
@@ -48,6 +59,7 @@ WebsocketService.prototype = {
 
     closeSocket: function(lastMessage, reciever) {
         this.sendToPlayer(lastMessage, reciever);
+
         reciever.ws.removeListener('message', this.onMessageMap.get(reciever));
         reciever.ws.removeListener('error', this.onErrorMap.get(reciever));
         reciever.ws.removeListener('close', this.onCloseMap.get(reciever));
@@ -73,6 +85,32 @@ WebsocketService.prototype = {
         }
     },
 
+    createDoOnMessageStub: function(socket, stubCurrent) {
+        var self = this;
+        var stub = stubCurrent;
+        var ws = socket;
+
+        return function(message) {
+            message = JSON.parse(message);
+            if ('startGame' in message) {
+
+                var player = self.gamemechanics.addPlayer(ws, stub.body.position, stub.number,
+                    stub.resolution, message.name, message.color);
+
+                self.updateEventListener(ws, 'message', stub, player,
+                    self.onMessageMap, self.createDoOnMessage(player));
+                self.updateEventListener(ws, 'error', stub, player,
+                    self.onErrorMap, self.createDoOnError(player));
+                self.updateEventListener(ws, 'close', stub, player,
+                    self.onCloseMap, self.createDoOnClose(player));
+            }
+
+            if ('x' in message) {
+                stub.resolution = { width: message.x, height: message.y };
+            }
+        }
+    },
+
     createDoOnMessage: function(playerCurrent) {
         var player = playerCurrent;
         var self = this;
@@ -83,7 +121,8 @@ WebsocketService.prototype = {
 
             if ('x' in parsedMessage) {
                 player.setResolution(parsedMessage);
-                //console.log("Now resolution is " + message);
+                self.gamemechanics.context.chemistry.updateGarbageConnectingPossibilityForPlayer()
+                console.log("Now resolution is " + message);
             }
 
             if ('mouseX' in parsedMessage) {
@@ -110,6 +149,15 @@ WebsocketService.prototype = {
                     }
                 }
             }
+        }
+    },
+
+    createDeleteStub: function(stub) {
+        var self = this;
+        var number = stub.number;
+
+        return function() {
+            delete self.gamemechanics.context.players[number];
         }
     },
 

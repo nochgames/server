@@ -156,7 +156,7 @@ BasicParticle.prototype = {
 
         if (node.chemicalParent) {
             node.emitter.emit('decoupled', { decoupledBodyA: node.chemicalParent,
-                                            decoupledBodyB: node });
+                                            decoupledBodyB: node, p: node.player });
 
             node.chemistry.balanceEnergy(node);
 
@@ -191,6 +191,8 @@ BasicParticle.prototype = {
         }
 
         node.emitter.emit('became garbage', { garbageBody: node });
+
+        node.chemistry.updateGarbageConnectingPossibilityForPlayer(node.playerNumber);
 
         if (node.inGameType != 'player') {
             node.inGameType = "garbage";

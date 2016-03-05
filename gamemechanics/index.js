@@ -34,8 +34,6 @@ var GameMechanics = function(playersEmitter) {
     this.isRunning = false;
 
     this.game_map = new GameMap(engine);
-    
-    this.colors = ["green", "blue", "yellow", "purple", "orange"];
 
     this.context = new Context(engine, playersEmitter, this.recyclebin, this.websocketservice);
     new CollisionHandler(this.context);
@@ -76,22 +74,43 @@ GameMechanics.prototype = {
         }
     },
 
-    addPlayer: function(ws) {
-        var player = new Player(ws, this.game_map.getRandomPositionInside(0, 850),
-                                this.context.engine, "C", this.context.playersEmitter,
+    addPlayerStub: function(ws) {
+        //TODO: change test parameters to normal
+        var pos = this.game_map.getRandomPositionInside(850);
+        var stub = {
+            body: { position: pos, coefficient: 0.2 },
+            ws: ws,
+            isStub: true,
+            resolution: {width: 0, height: 0 },
+            isReady: true
+        };
+
+        stub.number = this.context.addToArray(
+            this.context.players,
+            stub
+        );
+
+        this.context.websocketservice.sendToPlayer(Messages.greetingStub(pos), stub);
+        return stub;
+    },
+
+    addPlayer: function(ws, position, index, resolution, name, color) {
+        var player = new Player(ws, name, position, this.context.engine,
+                                "C", this.context.playersEmitter,
                                 this.websocketservice, this.context.chemistry);
 
-        var id = this.context.addToArray(this.context.players, player);
+        //var id = this.context.addToArray(this.context.players, player);
+        this.context.players[index] = player;
+        player.setResolution({ x: resolution.width, y: resolution.height });
 
-        player.body.number = player.body.playerNumber = id;
-        player.color = this.colors[Math.ceil(Math.random() * 4)];
+        player.body.number = player.body.playerNumber = index;
+        player.color = color;
 
         this.websocketservice
             .sendToPlayer(Messages.greeting(
                 player.body.id, player.color, player.body.element),
             player);
 
-        this.context.players[id] = player;
         player.isReady = true;
 
         this.notifyAndInformNewPlayer(player);
@@ -101,6 +120,8 @@ GameMechanics.prototype = {
         this.context.garbageActive.push(player.body);
         this.subscribeToSleepStart(player.body);
         this.subscribeToSleepEnd(player.body);
+
+        this.context.chemistry.updateGarbageConnectingPossibilityForPlayer(index);
 
         return player;
     },
@@ -157,8 +178,9 @@ GameMechanics.prototype = {
 
         var playersWhoMove =
             Util_tools.parseCoordinates(this.context.players.map(player => {
-                if (Math.abs(player.previousPosition.x - player.body.position.x) > 1 ||
-                    Math.abs(player.previousPosition.y - player.body.position.y) > 1) {
+                if (!player.isStub && (
+                    Math.abs(player.previousPosition.x - player.body.position.x) > 1 ||
+                    Math.abs(player.previousPosition.y - player.body.position.y) > 1)) {
 
                     var pos = player.body.position;
                     return {id: player.body.id, x: Math.ceil(pos.x), y: Math.ceil(pos.y)};
@@ -182,7 +204,7 @@ GameMechanics.prototype = {
 
     updatePlayersStats: function() {
         for (let i = 0; i < this.context.players.length; ++i) {
-            if (this.context.players[i]) {
+            if (this.context.players[i] && !this.context.players[i].isStub) {
                 this.context.players[i].updatePreviousPosition();
             }
         }
@@ -245,7 +267,7 @@ GameMechanics.prototype = {
         for (let i = 0; i < objects.length; ++i) {
             for (let j = 0; j < this.context.players.length; ++j) {
                 if (this.context.players[j] && this.context.players[j].isReady &&
-                    this.context.players[j].inScreen(objects[i], 500)) {
+                    Util_tools.inScreen.call(this.context.players[j], objects[i], 500)) {
 
                     var addedSuccessfully = this.addPlayerWhoSee(objects[i], j);
                 }
@@ -256,7 +278,7 @@ GameMechanics.prototype = {
             while (j--) {
                 if (!this.context.players[playersWhoSee[j]]) {
                     playersWhoSee.splice(j, 1);
-                } else if (!this.context.players[playersWhoSee[j]].inScreen(objects[i], 500)) {
+                } else if (!Util_tools.inScreen.call(this.context.players[playersWhoSee[j]], objects[i], 500)) {
                     this.context.websocketservice.sendToPlayer(
                         Messages.deleteParticle(objects[i].body.id),
                         this.context.players[playersWhoSee[j]]);
@@ -314,11 +336,12 @@ GameMechanics.prototype = {
                 playersWhoSee);
 
             self.context.chemistry.updateGarbageConnectingPossibilityForPlayer(
-                self.context.players.indexOf(event.p))
+                self.context.players.indexOf(event.p));
         });
 
 
         self.context.playersEmitter.on('decoupled', function(event) {
+
             self.context.websocketservice.sendSpecificPlayers(
                 Messages.deleteBond(event.decoupledBodyA.id, event.decoupledBodyB.id),
                 event.decoupledBodyA.playersWhoSee);
@@ -326,6 +349,31 @@ GameMechanics.prototype = {
             self.context.websocketservice.sendSpecificPlayers(
                 Messages.deleteBond(event.decoupledBodyA.id, event.decoupledBodyB.id),
                 event.decoupledBodyB.playersWhoSee);
+        });
+
+
+        self.context.playersEmitter.on('became playerPart', function(event) {
+
+        self.context.websocketservice.sendSpecificPlayers(
+            Messages.particleBecamePlayerPart(event.garbageBody.id),
+            event.garbageBody.playersWhoSee);
+        });
+
+        self.context.playersEmitter.on('became garbage', function(event) {
+
+            let playersWhoSee = event.garbageBody.playersWhoSee;
+            for (let i = 0; i < playersWhoSee.length; ++i) {
+                if (self.context.players[playersWhoSee[i]]) {
+                    self.context.websocketservice.sendToPlayer(
+                        Messages.particleBecameGarbage(event.garbageBody.id,
+                            self.context.chemistry.getColorForPlayer(
+                                self.context.getMainObject(event.garbageBody), playersWhoSee[i])),
+                        self.context.players[playersWhoSee[i]]);
+                }
+            }
+            /*self.context.websocketservice.sendSpecificPlayers(
+                { 'bg': event.garbageBody.id, 'p': Util_tools.ceilPosition(event.garbageBody.position) },
+                event.garbageBody.playersWhoSee);*/
         });
     },
 

@@ -77,7 +77,7 @@ class ChemistryAdvanced {
     }
 
     getColorForPlayer(body, playNumber) {
-        if (this.checkParticleAvailabilityForPlayer(body, playNumber)) {
+        if (this.context.players[playNumber].isStub || this.checkParticleAvailabilityForPlayer(body, playNumber)) {
             return 'green';
         }
         return 'grey'
@@ -148,7 +148,6 @@ class ChemistryAdvanced {
     }
 
     updateGarbageConnectingPossibilityForPlayer(playerIndex) {
-
         for (let i = 0; i < this.context.garbage.length; ++i) {
             if (this.context.garbage[i] && playerIndex in this.context.garbage[i].body.playersWhoSee) {
                 if (this.checkConnectingPossibilityGeneral(

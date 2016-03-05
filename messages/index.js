@@ -15,9 +15,15 @@ var Messages = {
         return message;
     },
 
+    greetingStub: function(stubPosition) {
+        return {
+            [API_NOCH.getCode("stub position")]: stubPosition
+        }
+    },
+
     newPlayer: function(playerId, color, element, position) {
         var message = {};
-        message[API_NOCH.getCode("player id")] = playerId;
+        message[API_NOCH.getCode("new player id")] = playerId;
         message[API_NOCH.getCode("color")] = color;
         message[API_NOCH.getCode("element")] = element;
         message[API_NOCH.getCode("position")] = position;
@@ -52,8 +58,10 @@ var Messages = {
 
     newBondOnScreen: function(firstBondedBodyId, secondBondedBodyId) {
 
-        let first = firstBondedBodyId < secondBondedBodyId ? firstBondedBodyId : secondBondedBodyId;
-        let second = firstBondedBodyId > secondBondedBodyId ? firstBondedBodyId : secondBondedBodyId;
+        let first = firstBondedBodyId < secondBondedBodyId ?
+                    firstBondedBodyId : secondBondedBodyId;
+        let second = firstBondedBodyId > secondBondedBodyId ?
+                    firstBondedBodyId : secondBondedBodyId;
 
         return {[API_NOCH.getCode("first id in bond")]: first,
                 [API_NOCH.getCode("second id in bond")]: second }
@@ -73,8 +81,10 @@ var Messages = {
     },
 
     deleteBond: function(firstBondBodyId, secondBondBodyId) {
-        let first = firstBondBodyId < secondBondBodyId ? firstBondBodyId : secondBondBodyId;
-        let second = firstBondBodyId > secondBondBodyId ? firstBondBodyId : secondBondBodyId;
+        let first = firstBondBodyId < secondBondBodyId ?
+                    firstBondBodyId : secondBondBodyId;
+        let second = firstBondBodyId > secondBondBodyId ?
+                    firstBondBodyId : secondBondBodyId;
 
         return {[API_NOCH.getCode("first id in bond to delete")]: first,
                 [API_NOCH.getCode("second id in bond to delete")]: second }
@@ -123,6 +133,19 @@ var Messages = {
 
     garbageIsNotAvailableAnymore: function(notAvailableGarbage) {
         return {[API_NOCH.getCode("garbage not available")]: notAvailableGarbage }
+    },
+
+    particleBecamePlayerPart: function(particleId) {
+        return {
+            [API_NOCH.getCode("transformed player part id")]: particleId
+        }
+    },
+
+    particleBecameGarbage: function(particleId, color) {
+        return {
+            [API_NOCH.getCode("transformed garbage id")]: particleId,
+            [API_NOCH.getCode("color")]: color
+        }
     }
 };
 
