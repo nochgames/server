@@ -36,7 +36,6 @@ var Player = function(ws, name, position, engine, elem, emitter, websocketservic
     this.body.realRadius = this.body.circleRadius;
     this.body.multiplier =  Math.sqrt(this.body.realRadius);
     this.resolution = { width: 0, height: 0 };
-    this.websocketservice.sendToPlayer();
     this.body.coefficient = 1;
     this.websocketservice.sendToPlayer(
         Messages.changeCoefficient(this.body.coefficient), this);

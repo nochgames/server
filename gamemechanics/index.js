@@ -99,7 +99,6 @@ GameMechanics.prototype = {
                                 "C", this.context.playersEmitter,
                                 this.websocketservice, this.context.chemistry);
 
-        //var id = this.context.addToArray(this.context.players, player);
         this.context.players[index] = player;
         player.setResolution({ x: resolution.width, y: resolution.height });
 
