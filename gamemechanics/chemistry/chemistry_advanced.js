@@ -179,8 +179,8 @@ class ChemistryAdvanced {
     }
 
     checkParticleAvailabilityForPlayer(particle, playerNumber) {
-        return !!this.checkConnectingPossibility(
-            this.context.players[playerNumber].body, particle.body);
+        return !!this.checkConnectingPossibilityGeneral(
+            this.context.players[playerNumber], particle.body, this.checkConnectingPossibility);
     }
 }
 
