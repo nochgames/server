@@ -34,6 +34,7 @@ var BasicParticle = function(position, engine, elem, emitter, chemistry) {
     this.body.playersWhoSee = [];
 
     this.body.energy = 0;
+    this.body.chemicalChildren = [];
 
     this.body.chemistry = chemistry;
     chemistry.setElement(elem, this);
@@ -51,7 +52,6 @@ var BasicParticle = function(position, engine, elem, emitter, chemistry) {
     this.body.previousLocalPosition = { x: 0, y: 0 };
     this.body.superMutex = 0;
     this.body.chemicalBonds = 0;
-    this.body.chemicalChildren = [];
     this.body.intervalID = null;
 
     this.body.getFreeBonds = function() {
@@ -435,7 +435,7 @@ BasicParticle.prototype = {
         this.body.chemistry.setElement(elementName, this);
 
         while (this.body.chemistry.isImpossible(this.body)) {
-            this.dismountBranch(engine);
+            this.dismountLightestBranch(engine);
         }
         for (let i = 0; i < this.body.bondAngles.length; ++i) {
             this.body.bondAngles[i].available = true;
@@ -542,7 +542,11 @@ BasicParticle.prototype = {
         }
     },
 
-    dismountBranch: function(engine) {
+    dismountBranch: function(body, engine) {
+        this.traversDST(body, this.free, this.letGo, engine);
+    },
+
+    dismountLightestBranch: function(engine) {
         if(this.body.inGameType == 'player') {
             let child = {
                 body: null,

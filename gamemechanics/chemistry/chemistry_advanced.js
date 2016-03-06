@@ -21,49 +21,62 @@ class ChemistryAdvanced {
     }
 
     setElement(elem, particle) {
-        if (elem) {
-            let element = params.getParameter(elem);
-            let previousElement = null;
-            if (particle.body.element) {
-                previousElement = params.getParameter(particle.body.element);
-                particle.body.energy -= previousElement.energy;
+        if (!elem) return;
+        this.dismountImpossibleBonds(particle.body, elem);
+        let element = params.getParameter(elem);
+        let previousElement = null;
+        if (particle.body.element) {
+            previousElement = params.getParameter(particle.body.element);
+            particle.body.energy -= previousElement.energy;
+        }
+        particle.body.element = elem;
+
+        particle.body.energy += element.energy;
+
+        let coefficient = (element.radius + particle.CHARGE_RADIUS)
+            / particle.body.circleRadius;
+
+        Body.scale(particle.body, coefficient, coefficient);
+        particle.body.circleRadius = element.radius + particle.CHARGE_RADIUS;
+
+        particle.body.elValency = element.valency;
+        particle.body.nuclearSpeed = element.speed;
+        particle.body.realMass -= particle.body.mass;
+        particle.body.mass = element.mass;
+        particle.body.realMass += particle.body.mass;
+        particle.body.inverseMass = 1 / element.mass;
+        particle.body.coolDown = element.coolDown;
+        particle.body.neutrons = element.neutrons;
+        particle.body.maxNeutrons = element.maxNeutrons;
+
+        if (particle.body.bondAngles) {
+            let angle = 0;
+            while (particle.body.bondAngles.length < particle.body.elValency) {
+                particle.body.bondAngles.push({ "angle": 0, "available": true });
             }
-            particle.body.element = elem;
-
-            particle.body.energy += element.energy;
-
-            let coefficient = (element.radius + particle.CHARGE_RADIUS)
-                / particle.body.circleRadius;
-
-            Body.scale(particle.body, coefficient, coefficient);
-            particle.body.circleRadius = element.radius + particle.CHARGE_RADIUS;
-
-            particle.body.elValency = element.valency;
-            particle.body.nuclearSpeed = element.speed;
-            particle.body.realMass -= particle.body.mass;
-            particle.body.mass = element.mass;
-            particle.body.realMass += particle.body.mass;
-            particle.body.inverseMass = 1 / element.mass;
-            particle.body.coolDown = element.coolDown;
-            particle.body.neutrons = element.neutrons;
-            particle.body.maxNeutrons = element.maxNeutrons;
-
-            if (particle.body.bondAngles) {
-                let angle = 0;
-                while (particle.body.bondAngles.length < particle.body.elValency) {
-                    particle.body.bondAngles.push({ "angle": 0, "available": true });
-                }
-                for (let i = 0; i < particle.body.elValency; ++i) {
-                    particle.body.bondAngles[i].angle = angle;
-                    angle += 2 * Math.PI / particle.body.elValency;
-                }
-                while (particle.body.bondAngles.length > particle.body.elValency) {
-                    particle.body.bondAngles.pop();
-                }
+            for (let i = 0; i < particle.body.elValency; ++i) {
+                particle.body.bondAngles[i].angle = angle;
+                angle += 2 * Math.PI / particle.body.elValency;
             }
-            if (previousElement) {
-                particle.body.emitter.emit("element changed", { body: particle.body});
+            while (particle.body.bondAngles.length > particle.body.elValency) {
+                particle.body.bondAngles.pop();
             }
+        }
+        if (previousElement) {
+            particle.body.emitter.emit("element changed", { body: particle.body});
+        }
+    }
+
+    dismountImpossibleBonds(body, element) {
+
+        for (let i = 0; i < body.chemicalChildren.length; ++i) {
+            if (body.chemicalChildren[i] && !this.getBondParams({ element: element }, body.chemicalChildren[i])) {
+                this.context.getMainObject(body).dismountBranch(body.chemicalChildren[i], this.context.engine);
+            }
+        }
+
+        if (body.chemicalParent && !this.getBondParams({ element: element }, body.chemicalParent)) {
+            this.context.getMainObject(body).dismountBranch(body.chemicalParent, this.context.engine);
         }
     }
 
