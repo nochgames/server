@@ -91,6 +91,7 @@ GameMechanics.prototype = {
         );
 
         this.context.websocketservice.sendToPlayer(Messages.greetingStub(pos), stub);
+        this.notifyStubAboutPlayers(stub);
         return stub;
     },
 
@@ -112,7 +113,8 @@ GameMechanics.prototype = {
 
         player.isReady = true;
 
-        this.notifyAndInformNewPlayer(player);
+        //this.notifyAndInformNewPlayer(player);
+        this.notifyEverybodyAboutNewPlayer(player);
 
         //Most player bodies never sleep, so they never throw
         //sleepEnd event so they can't be in garbageActive array
@@ -145,31 +147,56 @@ GameMechanics.prototype = {
         //console.log("body with id " + Body.id + " is subscribed to sleep start.");
     },
 
+    notifyStubAboutPlayers: function(stub) {
+        for (let i = 0; i < this.context.players.length; ++i) {
+            if (!this.context.players[i] || this.context.players[i].isStub ||
+                i == stub.body.number) continue;
+            this.websocketservice.sendToPlayer(Messages.newPlayer(
+                this.context.players[i].body.id,
+                this.context.players[i].color,
+                this.context.players[i].body.element,
+                Util_tools.ceilPosition(this.context.players[i].body.position)
+                ),
+                stub);
+        }
+    },
+
+    notifyEverybodyAboutNewPlayer: function(player) {
+        for (let i = 0; i < this.context.players.length; ++i) {
+            if (!this.context.players[i]||
+                i == player.body.number) continue;
+            this.websocketservice.sendToPlayer(
+                Messages.newPlayer(
+                    player.body.id,
+                    player.color,
+                    player.body.element,
+                    Util_tools.ceilPosition(player.body.position)
+                ),
+                this.context.players[i]);
+        }
+    },
+
+    //TODO: delete notifyAndInformNewPlayer after tests
     notifyAndInformNewPlayer: function(player) {
         for (let i = 0; i < this.context.players.length; ++i) {
             if (!(this.context.players[i] &&
-                !this.context.players[i].isStub &&
                 player.body.number != i)) continue;
-            try {
-                this.websocketservice.sendToPlayer(
-                    Messages.newPlayer(
-                        player.body.id,
-                        player.color,
-                        player.body.element,
-                        Util_tools.ceilPosition(player.body.position)
-                    ),
-                    this.context.players[i]);
-                this.websocketservice.sendToPlayer(
-                    Messages.newPlayer(
-                        this.context.players[i].body.id,
-                        this.context.players[i].color,
-                        this.context.players[i].body.element,
-                        Util_tools.ceilPosition(this.context.players[i].body.position)
-                    ),
-                    player);
-            } catch (e) {
-                console.log('Caught ' + e.name + ': ' + e.message);
-            }
+            this.websocketservice.sendToPlayer(
+                Messages.newPlayer(
+                    player.body.id,
+                    player.color,
+                    player.body.element,
+                    Util_tools.ceilPosition(player.body.position)
+                ),
+                this.context.players[i]);
+            this.websocketservice.sendToPlayer(
+                Messages.newPlayer(
+                    this.context.players[i].body.id,
+                    this.context.players[i].color,
+                    this.context.players[i].body.element,
+                    Util_tools.ceilPosition(this.context.players[i].body.position)
+                ),
+                player);
         }
     },
 
