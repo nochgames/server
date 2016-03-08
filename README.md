@@ -7,7 +7,7 @@
  Matter.js
  
 ## server
-####System software requrements
+####System software requirements
 Node.js 4.2.2
 ### Quickstart
 ```shell
