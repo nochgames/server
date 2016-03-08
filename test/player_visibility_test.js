@@ -21,7 +21,7 @@ gamemechanics.websocketservice = websocketservice;
 describe('gamemechanics.checkGarbageVisibility', function() {
 
     function testCheckGarbageVisibility(particlesNumber, playersNumber, parentsNumber, isReady, inScreenValue, expected) {
-        it('should send add to to playersWhoSee array every particle in screen,' +
+        it('should send add to playersWhoSee array every particle in screen,' +
             ' and all chemicalParents of every object too', function () {
             var context = new Context({}, {}, {}, websocketservice);
             for (let i = 0; i < particlesNumber; ++i) {

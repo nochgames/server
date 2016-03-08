@@ -60,7 +60,7 @@ GameMechanics.prototype = {
 
             var OFFSET_BORDER = 40;
             var OFFSET_PLAYER = 1000;
-            var position = this.game_map.getRandomPositionInside(diameter / 2, OFFSET_PLAYER,
+            var position = this.game_map.getRandomPositionInside(OFFSET_PLAYER,
                 diameter / 2 - OFFSET_BORDER);
 
             var singleGarbage = new Garbage(position, this.context.engine, element,
@@ -76,7 +76,7 @@ GameMechanics.prototype = {
 
     addPlayerStub: function(ws) {
         //TODO: change test parameters to normal
-        var pos = this.game_map.getRandomPositionInside(850);
+        var pos = this.game_map.getRandomPositionInside(0, 850);
         var stub = {
             body: { position: pos, coefficient: 0.2 },
             ws: ws,
@@ -147,7 +147,9 @@ GameMechanics.prototype = {
 
     notifyAndInformNewPlayer: function(player) {
         for (let i = 0; i < this.context.players.length; ++i) {
-            if (!(this.context.players[i] && player.body.number != i)) continue;
+            if (!(this.context.players[i] &&
+                !this.context.players[i].isStub &&
+                player.body.number != i)) continue;
             try {
                 this.websocketservice.sendToPlayer(
                     Messages.newPlayer(
