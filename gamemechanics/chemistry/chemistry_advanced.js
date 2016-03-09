@@ -20,6 +20,12 @@ class ChemistryAdvanced {
         this.context = context;
     }
 
+    subtractBondEnergy(bodyA, bodyB) {
+        var bond = this.getBondParams(bodyA, bodyB);
+        bodyA.energy -= bond[bodyA.element];
+        bodyB.energy -= bond[bodyB.element];
+    }
+
     setElement(elem, particle) {
         if (!elem) return;
         this.dismountImpossibleBonds(particle.body, elem);

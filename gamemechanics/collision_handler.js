@@ -73,6 +73,8 @@ CollisionHandler.prototype = {
         ++playerBody.chemicalBonds;
         ++garbageBody.chemicalBonds;
 
+        this.context.chemistry.subtractBondEnergy(playerBody, garbageBody);
+
         this.link(garbageBody, playerBody);
 
         var newRadius = Geometry.calculateDistance(this.context.getPlayer(playerBody)

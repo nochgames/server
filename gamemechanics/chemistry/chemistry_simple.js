@@ -19,6 +19,10 @@ class ChemistrySimple {
         this.context = context;
     }
 
+    subtractBondEnergy(bodyA, bodyB) {
+        //do nothing
+    }
+
     setElement(elem, particle) {
         if (elem) {
             var element = params.getParameter(elem);
