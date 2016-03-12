@@ -8,18 +8,16 @@ var Matter = require('matter-js/build/matter.js');
 var basicParticle = require("../basic particle");
 
 var Engine = Matter.Engine,
-    World = Matter.World,
-    Bodies = Matter.Bodies,
-    Body = Matter.Body,
-    Composite = Matter.Composite;
+  World = Matter.World,
+  Bodies = Matter.Bodies,
+  Body = Matter.Body,
+  Composite = Matter.Composite;
 
 var Garbage = function(position, engine, elem, emitter, chemistry) {
+  basicParticle.call(this, position, engine, elem, emitter, chemistry);
 
-    basicParticle.call(this, position, engine, elem, emitter, chemistry);
-
-    this.body.frictionAir = 0.003;
-
-    this.body.inGameType = "garbage";
+  this.body.frictionAir = 0.003;
+  this.body.inGameType = "garbage";
 };
 
 Garbage.prototype = {

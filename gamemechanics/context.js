@@ -3,66 +3,66 @@
  */
 
 var Context = function(engine, playersEmitter, recyclebin, websocketservice) {
-    this.players = [];
-    this.garbage = [];
-    this.recyclebin = recyclebin;
-    this.freeProtons = [];
-    this.garbageActive = [];
-    this.playersEmitter = playersEmitter;
-    this.engine = engine;
-    this.websocketservice = websocketservice;
+  this.players = [];
+  this.garbage = [];
+  this.recyclebin = recyclebin;
+  this.freeProtons = [];
+  this.garbageActive = [];
+  this.playersEmitter = playersEmitter;
+  this.engine = engine;
+  this.websocketservice = websocketservice;
 };
 
 Context.prototype = {
-    getArray: function(body) {
-        switch (body.inGameType) {
-            case "player":
-                return this.players;
-            case "player temporary undefined":
-            case "temporary undefined":
-            case "playerPart":
-            case "playerPart temporary undefined":
-            case "garbage":
-            case "garbage temporary undefined":
-                return this.garbage;
-            case "n":
-            case "p":
-                return this.freeProtons;
-        }
-    },
-
-    getPlayer: function(body) {
-        var player = this.players[body.playerNumber];
-        if (player !== undefined) {
-            return player;
-        } else {
-            console.log("No such player! id: " + body.playerNumber);
-        }
-    },
-
-    getMainObject: function(body) {
-        switch (body.inGameType) {
-            case "player":
-                return this.players[body.number];
-            case "player temporary undefined":
-            case "temporary undefined":
-            case "playerPart":
-            case "playerPart temporary undefined":
-            case "garbage":
-            case "garbage temporary undefined":
-                return this.garbage[body.number];
-            case "n":
-            case "p":
-                return this.freeProtons[body.number];
-        }
-    },
-
-    addToArray: function(array, obj) {
-        var i = 0;
-        while(array[i]) ++i;
-        array[i] = obj;
-        return i;
+  getArray: function(body) {
+    switch (body.inGameType) {
+      case "player":
+        return this.players;
+      case "player temporary undefined":
+      case "temporary undefined":
+      case "playerPart":
+      case "playerPart temporary undefined":
+      case "garbage":
+      case "garbage temporary undefined":
+        return this.garbage;
+      case "n":
+      case "p":
+        return this.freeProtons;
     }
+  },
+
+  getPlayer: function(body) {
+    var player = this.players[body.playerNumber];
+    if (player !== undefined) {
+      return player;
+    } else {
+      console.log("No such player! id: " + body.playerNumber);
+    }
+  },
+
+  getMainObject: function(body) {
+    switch (body.inGameType) {
+      case "player":
+        return this.players[body.number];
+      case "player temporary undefined":
+      case "temporary undefined":
+      case "playerPart":
+      case "playerPart temporary undefined":
+      case "garbage":
+      case "garbage temporary undefined":
+        return this.garbage[body.number];
+      case "n":
+      case "p":
+        return this.freeProtons[body.number];
+    }
+  },
+
+  addToArray: function(array, obj) {
+    var i = 0;
+    while(array[i]) ++i;
+    array[i] = obj;
+    return i;
+  }
 };
 
 module.exports = Context;
