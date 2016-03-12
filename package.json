@@ -19,7 +19,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "postinstall": "git clone -b master --single-branch https://github.com/liabru/matter-js node_modules/matter-js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "nodemon -x \"npm start\""
   },
   "repository": {
     "type": "git",

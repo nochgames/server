@@ -5,14 +5,26 @@
  HTML5 Canvas,
  Node JS,
  Matter.js
- 
+
 ## server
+
 ####System software requirements
-Node.js 4.2.2
+
+> Node.js 4.2.2
+
+
 ### Quickstart
-```shell
+
+```bash
 git clone git@github.com:nochgames/server.git
 cd server
 npm install
 node server.js
+```
+
+## development
+
+```bash
+npm install --global nodemon
+npm run dev
 ```
