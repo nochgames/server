@@ -58,6 +58,8 @@ Context.prototype = {
   },
 
   addToArray: function(array, obj) {
+    // What The Fuck?
+    // array.push(obj) ???
     var i = 0;
     while(array[i]) ++i;
     array[i] = obj;
