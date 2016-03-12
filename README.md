@@ -19,7 +19,7 @@
 git clone git@github.com:nochgames/server.git
 cd server
 npm install
-node server.js
+npm start
 ```
 
 ## development
