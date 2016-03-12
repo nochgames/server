@@ -6,7 +6,7 @@
   "dependencies": {
     "db_noch": "0.0.1",
     "geometry_noch": "0.0.1",
-    "matter-js": "git+https://github.com/liabru/matter-js.git",
+    "matter-js": "^0.9.1",
     "ws": "^1.0.1"
   },
   "devDependencies": {

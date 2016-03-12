@@ -16,11 +16,11 @@ var gamemechanics = new GameMechanics(playersEmitter);
 
 var websocketService = new WebsocketService(gamemechanics);
 
-gamemechanics.websocketservice =
-    gamemechanics.context.websocketservice = websocketService;
+gamemechanics.websocketservice = gamemechanics.context.websocketservice = websocketService;
 
 gamemechanics.configureEmitter();
 gamemechanics.game_map.createFullBorder();
 gamemechanics.createGarbage(0.000008);
 gamemechanics.run();
-playersEmitter.on('no players', (event) => { gamemechanics.stop(); });
+
+playersEmitter.on('no players', (event) => gamemechanics.stop());
