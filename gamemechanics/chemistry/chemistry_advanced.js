@@ -28,16 +28,22 @@ class ChemistryAdvanced {
 
     setElement(elem, particle) {
         if (!elem) return;
-        this.dismountImpossibleBonds(particle.body, elem);
+        this.recalculateEnergy(particle.body, elem);
+
         let element = params.getParameter(elem);
         let previousElement = null;
         if (particle.body.element) {
             previousElement = params.getParameter(particle.body.element);
             particle.body.energy -= previousElement.energy;
         }
-        particle.body.element = elem;
 
         particle.body.energy += element.energy;
+
+        while (this.isImpossible(particle.body)) {
+            particle.dismountLightestBranch(this.context.engine);
+        }
+
+        particle.body.element = elem;
 
         let coefficient = (element.radius + particle.CHARGE_RADIUS)
             / particle.body.circleRadius;
@@ -70,6 +76,24 @@ class ChemistryAdvanced {
         }
         if (previousElement) {
             particle.body.emitter.emit("element changed", { body: particle.body});
+        }
+    }
+
+    recalculateEnergy(body, newElement) {
+        let neighbours = body.chemicalChildren.concat([body.chemicalParent]);
+        for (let i = 0; i < neighbours.length; ++i) {
+            if (!neighbours[i]) continue;
+            let bond = this.getBondParams(body, neighbours[i]);
+
+            let newBond = this.getBondParams({ element: newElement }, neighbours[i]);
+            if (!newBond) {
+                this.context.getMainObject(body).dismountBranch(neighbours[i], this.context.engine);
+            } else {
+                body.energy += bond[body.element];
+                neighbours[i].energy += bond[neighbours[i].element];
+                body.energy -= newBond[newElement];
+                neighbours[i].energy -= newBond[neighbours[i].element];
+            }
         }
     }
 
@@ -119,18 +143,20 @@ class ChemistryAdvanced {
         let energy = 0;
         let neighbours = body.chemicalChildren.concat([body.chemicalParent]);
         for (let i = 0; i < neighbours.length; ++i) {
-            if (neighbours[i]) {
-                let bond = this.getBondParams(body, neighbours[i]);
-                if (bond) {
-                    energy += bond[body.element];
-                }
+            if (!neighbours[i]) continue;
+            let bond = this.getBondParams(body, neighbours[i]);
+            if (bond) {
+                energy += bond[body.element];
             }
         }
         return energy;
     }
 
     isImpossible(body) {
-        return body.chemicalBonds > body.elValency||
+        if (body.energy < 0 && body.chemicalBonds == 0) {
+            throw new Error("Body with negative energy has no bonds");
+        }
+        return body.chemicalBonds > body.elValency ||
             this.calculateEnergy(body) > body.energy;
     }
 

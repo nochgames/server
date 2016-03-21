@@ -343,10 +343,17 @@ GameMechanics.prototype = {
         });
 
         this.context.playersEmitter.on('element changed', function(event) {
-             self.context.websocketservice
-                .sendSpecificPlayers(Messages.changeElementGarbage(event.body.id,
-                                        event.body.element),
-                                        event.body.playersWhoSee);
+            if (event.body.inGameType == 'player') {
+                self.context.websocketservice.sendEverybody(
+                    Messages.changeElementGarbage(event.body.id,
+                    event.body.element));
+
+            } else {
+                self.context.websocketservice
+                    .sendSpecificPlayers(Messages.changeElementGarbage(event.body.id,
+                        event.body.element),
+                        event.body.playersWhoSee);
+            }
 
             self.context.chemistry.updateGarbageConnectingPossibility();
         });

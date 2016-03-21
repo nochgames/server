@@ -33,6 +33,7 @@ var BasicParticle = function(position, engine, elem, emitter, chemistry) {
     this.body.emitter = emitter;
     this.body.playersWhoSee = [];
 
+    /*Object.defineProperty(this.body, "energy", { set: function(value) { if (value > 0) this } });*/
     this.body.energy = 0;
     this.body.chemicalChildren = [];
 
@@ -60,7 +61,6 @@ var BasicParticle = function(position, engine, elem, emitter, chemistry) {
     this.body.getAvailableNeutrons = function() {
         return self.body.maxNeutrons - self.body.neutrons;
     };
-
 };
 
 BasicParticle.prototype = {
@@ -161,8 +161,7 @@ BasicParticle.prototype = {
             node.chemistry.balanceEnergy(node);
 
             delete node.chemicalParent.chemicalChildren[
-                node.chemicalParent.chemicalChildren
-                    .indexOf(node)];
+                node.chemicalParent.chemicalChildren.indexOf(node)];
 
             if (node.occupiedAngle) {
                 node.chemicalParent.bondAngles.forEach(function(obj) {
@@ -240,7 +239,7 @@ BasicParticle.prototype = {
     createNucleon: function(particle, shotPos, nucleonsArray, engine) {
         var element = params.getParameter(particle);
 
-        var OFFSET_SHOT = 8;
+        var OFFSET_SHOT = 20;
 
         this.body.mass -= element.mass;
 
@@ -434,9 +433,6 @@ BasicParticle.prototype = {
 
         this.body.chemistry.setElement(elementName, this);
 
-        while (this.body.chemistry.isImpossible(this.body)) {
-            this.dismountLightestBranch(engine);
-        }
         for (let i = 0; i < this.body.bondAngles.length; ++i) {
             this.body.bondAngles[i].available = true;
         }
@@ -547,7 +543,7 @@ BasicParticle.prototype = {
     },
 
     dismountLightestBranch: function(engine) {
-        if(this.body.inGameType == 'player') {
+        if (this.body.inGameType == 'player') {
             let child = {
                 body: null,
                 mass: Infinity
