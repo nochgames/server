@@ -360,11 +360,11 @@ GameMechanics.prototype = {
 
         self.context.playersEmitter.on('bond created', function(event) {
 
-            if (event.bc1.inGameType == 'garbage')
+            /*if (event.bc1.inGameType == 'garbage')
                 self.synchronizePlayersWhoSee(event.bc1, event.bc2.playersWhoSee);
             if (event.bc2.inGameType == 'garbage')
-                self.synchronizePlayersWhoSee(event.bc2, event.bc1.playersWhoSee);
-            var playersWhoSee = event.bc1.inGameType == 'garbage' ?
+                self.synchronizePlayersWhoSee(event.bc2, event.bc1.playersWhoSee);*/
+            var playersWhoSee = event.bc1.playersWhoSee.length > event.bc2.playersWhoSee.length ?
                 event.bc1.playersWhoSee : event.bc2.playersWhoSee;
             self.context.websocketservice.sendSpecificPlayers(
                 Messages.newBondOnScreen(event.bc1.id, event.bc2.id),
