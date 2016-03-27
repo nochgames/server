@@ -25,6 +25,8 @@ var GameMechanics = function(playersEmitter) {
     this.websocketservice = {};
     this.intervals = [];
 
+    this.playersToUpdateConnectionPossibility = [];
+
     this.recyclebin = new RecycleBin();
     var engine = Engine.create();
 
@@ -361,8 +363,7 @@ GameMechanics.prototype = {
                 Messages.newBondOnScreen(event.bc1.id, event.bc2.id),
                 playersWhoSee);
 
-            self.context.chemistry.updateGarbageConnectingPossibilityForPlayer(
-                self.context.players.indexOf(event.p));
+            self.addPlayerToUpdateConnectionPossibility(self.context.players.indexOf(event.p))
         });
 
 
@@ -375,6 +376,8 @@ GameMechanics.prototype = {
             self.context.websocketservice.sendSpecificPlayers(
                 Messages.deleteBond(event.decoupledBodyA.id, event.decoupledBodyB.id),
                 event.decoupledBodyB.playersWhoSee);
+
+            self.addPlayerToUpdateConnectionPossibility(self.context.players.indexOf(event.p))
         });
 
 
@@ -401,6 +404,23 @@ GameMechanics.prototype = {
                 { 'bg': event.garbageBody.id, 'p': Util_tools.ceilPosition(event.garbageBody.position) },
                 event.garbageBody.playersWhoSee);*/
         });
+    },
+
+    addPlayerToUpdateConnectionPossibility(index) {
+        if (this.playersToUpdateConnectionPossibility.indexOf(index) == -1) {
+            this.playersToUpdateConnectionPossibility.push(index);
+        }
+    },
+
+    updateConnectionPossibilityGeneral() {
+        for (let i = 0; i < this.playersToUpdateConnectionPossibility.length; ++i) {
+            if (this.context.players[this.playersToUpdateConnectionPossibility[i]]) {
+                this.context.chemistry.updateGarbageConnectingPossibilityForPlayer(
+                    this.playersToUpdateConnectionPossibility[i]);
+            }
+        }
+
+        this.playersToUpdateConnectionPossibility = [];
     },
 
     synchronizePlayersWhoSee: function(target, mainArray) {
@@ -440,7 +460,7 @@ GameMechanics.prototype = {
             }
             var message = Messages.activeGarbageUpdate(garbageToSend);
             if (playersActive) message.players = playersActive;
-            if (garbageToSend.length)
+            if (garbageToSend.length || playersActive)
                 this.context.websocketservice.sendToPlayer(
                     message, this.context.players[i]);
         }
@@ -465,13 +485,13 @@ GameMechanics.prototype = {
 
             Matter.Engine.update(self.context.engine, self.context.engine.timing.delta);
             self.recyclebin.empty();
-            //self.sendToAllPlayers();
             self.updateActiveGarbage();
             self.updatePlayersStats();
         }, 1000 / 60));
 
         this.intervals.push(setInterval(function() {
             self.checkGarbageVisibility();
+            self.updateConnectionPossibilityGeneral();
         }, 1000));
 
         this.logMemoryUsage();
