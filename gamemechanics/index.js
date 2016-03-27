@@ -414,7 +414,8 @@ GameMechanics.prototype = {
 
     updateConnectionPossibilityGeneral() {
         for (let i = 0; i < this.playersToUpdateConnectionPossibility.length; ++i) {
-            if (this.context.players[this.playersToUpdateConnectionPossibility[i]]) {
+            if (this.context.players[this.playersToUpdateConnectionPossibility[i]] &&
+                !this.context.players[this.playersToUpdateConnectionPossibility[i]].isStub) {
                 this.context.chemistry.updateGarbageConnectingPossibilityForPlayer(
                     this.playersToUpdateConnectionPossibility[i]);
             }
