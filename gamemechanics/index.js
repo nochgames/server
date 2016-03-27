@@ -220,16 +220,6 @@ GameMechanics.prototype = {
         return response;
     },
 
-    sendToAllPlayers: function() {
-        for (let j = 0; j < this.context.players.length; ++j) {
-            if (this.context.players[j]) {
-                var message = this.createMessage(j);
-                if (!Util_tools.isEmpty(message)) this.websocketservice
-                    .sendToPlayer(message, this.context.players[j]);
-            }
-        }
-    },
-
     updatePlayersStats: function() {
         for (let i = 0; i < this.context.players.length; ++i) {
             if (this.context.players[i] && !this.context.players[i].isStub) {
@@ -430,6 +420,8 @@ GameMechanics.prototype = {
             return particle.body;
         }));
 
+        var playersActive = this.createMessage().players;
+
         for (let i = 0; i < this.context.players.length; ++i) {
             if (!this.context.players[i]) continue;
             var garbageToSend = [];
@@ -446,10 +438,21 @@ GameMechanics.prototype = {
                     }
                 }
             }
+            var message = Messages.activeGarbageUpdate(garbageToSend);
+            if (playersActive) message.players = playersActive;
             if (garbageToSend.length)
                 this.context.websocketservice.sendToPlayer(
-                    Messages.activeGarbageUpdate(garbageToSend),
-                    this.context.players[i]);
+                    message, this.context.players[i]);
+        }
+    },
+
+    sendToAllPlayers: function() {
+        for (let j = 0; j < this.context.players.length; ++j) {
+            if (this.context.players[j]) {
+                var message = this.createMessage(j);
+                if (!Util_tools.isEmpty(message)) this.websocketservice
+                    .sendToPlayer(message, this.context.players[j]);
+            }
         }
     },
 
@@ -462,7 +465,7 @@ GameMechanics.prototype = {
 
             Matter.Engine.update(self.context.engine, self.context.engine.timing.delta);
             self.recyclebin.empty();
-            self.sendToAllPlayers();
+            //self.sendToAllPlayers();
             self.updateActiveGarbage();
             self.updatePlayersStats();
         }, 1000 / 60));
