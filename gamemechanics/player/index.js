@@ -80,14 +80,14 @@ Player.prototype = {
 
             var nucleonBody = this.createNucleon(particle, shotPos, nucleonsArray, engine);
 
-            if (particle == "p") this.changeCharge(-1, engine, nucleonsArray);
+            //if (particle == "p") this.changeCharge(-1, engine, nucleonsArray);
 
             var self = this;
 
             this["timeLimit" + particle] = true;
             setTimeout(function() {
                 self["timeLimit" + particle] = false;
-            }, 100/*this.body.coolDown*/);
+            }, /*100*/this.body.coolDown);
 
             nucleonBody.timerId1 = setTimeout(function() {
                 nucleonBody.collisionFilter.mask = 0x0001;

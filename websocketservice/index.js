@@ -135,6 +135,9 @@ WebsocketService.prototype = {
 
             if ('shotX' in parsedMessage) {
 
+                //in case someone will send old data manually
+                if (parsedMessage.particle == "p" || parsedMessage.particle == "n") return false;
+
                 var shotPos = {
                     x: parsedMessage.shotX - player.getLocalPosition().x,
                     y: parsedMessage.shotY - player.getLocalPosition().y

@@ -22,6 +22,7 @@
   "new element": "ne",
   "id of player who shot p": "shp",
   "id of player who shot n": "shn",
+  "id of player who shot ph": "shph",
   "garbage id to delete": "dg",
   "coefficient": "coefficient",
   "player is dead": "dead",

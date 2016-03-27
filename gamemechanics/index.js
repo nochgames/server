@@ -278,6 +278,7 @@ GameMechanics.prototype = {
                 break;
             case 'n':
             case 'p':
+            case 'ph':
                 message = Messages.newParticleOnScreen(
                     pos, object.body.id, object.body.element);
         }

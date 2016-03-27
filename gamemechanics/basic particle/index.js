@@ -241,7 +241,9 @@ BasicParticle.prototype = {
 
         var OFFSET_SHOT = 20;
 
-        this.body.mass -= element.mass;
+        if (particle != "ph") {
+            this.body.mass -= element.mass;
+        }
 
         var offset = this.body.circleRadius + OFFSET_SHOT;
 

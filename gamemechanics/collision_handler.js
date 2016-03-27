@@ -40,6 +40,16 @@ var CollisionHandler = function(context) {
                 bodyA.inGameType  == "playerPart" ||
                 bodyA.inGameType  == "garbage")) {
                 self.collideWithProton(bodyA, bodyB);
+            } else if (bodyA.inGameType  == "ph" &&
+                (bodyB.inGameType  == "player" ||
+                bodyB.inGameType  == "playerPart" ||
+                bodyB.inGameType  == "garbage")) {
+                self.collideWithPhoton(bodyB, bodyA);
+            } else if (bodyB.inGameType  == "ph" &&
+                (bodyA.inGameType  == "player"||
+                bodyA.inGameType  == "playerPart" ||
+                bodyA.inGameType  == "garbage")) {
+                self.collideWithPhoton(bodyA, bodyB);
             } else if (bodyB.inGameType  == "player" &&
                 bodyA.inGameType  == "player" ||
                 bodyB.inGameType  == "player" &&
@@ -153,6 +163,12 @@ CollisionHandler.prototype = {
         this.context.playersEmitter.emit('particle died', { id: protonBody.id,
             playersWhoSee: protonBody.playersWhoSee });
         this.context.recyclebin.prepareToDelete(protonBody);
+    },
+
+    collideWithPhoton: function(elementBody, photonBody) {
+        var momentum = this.calculateMomentum(elementBody, photonBody);
+
+        this.context.getMainObject(elementBody).checkDecoupling(momentum, this.context.engine);
     },
 
     collideWithNeutron: function(elementBody, neutronBody) {
