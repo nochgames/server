@@ -165,7 +165,7 @@ Player.prototype = {
         if (playerIndex > -1) {
             delete playersArray[playerIndex];
         } else {
-            throw new Error('incorrect behaviour');
+            throw new Error(new Date() + '\nincorrect behaviour');
         }
     },
 

@@ -60,7 +60,7 @@ RecycleBin.prototype = {
                     delete this.ghosts[i];
                     break;
                 default :
-                    throw new Error('Incorrect behaviour');
+                    throw new Error(new Date() + '\nIncorrect behaviour');
             }
         }
     },

@@ -570,7 +570,7 @@ BasicParticle.prototype = {
                 while (!child) {
                     child = this.body.chemicalChildren.pop();
                 }
-                if (!child) throw new Error('Incorrect behaviour');
+                if (!child) throw new Error(new Date() + '\nIncorrect behaviour');
                 this.traversDST(child, this.free, this.letGo, engine);
             } else {
                 this.traversDST(this.body, this.free, this.letGo, engine);
