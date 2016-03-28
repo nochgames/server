@@ -32,6 +32,7 @@ RecycleBin.prototype = {
             switch (ghost.inGameType) {
                 case "p":
                 case "n":
+                case "ph":
                     this.deleteProperly(ghost);
                     delete this.ghosts[i];
                     break;
