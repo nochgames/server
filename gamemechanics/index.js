@@ -7,6 +7,7 @@ var params = require("db_noch");
 params.connect();
 var Matter = require('matter-js/build/matter.js');
 var elements = params.getParameter("elements");
+var portions = params.getParameter("portions");
 var RecycleBin = require('./recycleBin');
 var Context = require('./context');
 var Garbage = require("./garbage");
@@ -51,10 +52,11 @@ GameMechanics.prototype = {
 
         var quantity = garbageDensity * diameter * diameter / 4;
 
-        this.createCertainAmountOfGarbage(quantity);
+        //this.createRandomGarbage(quantity);
+        this.createPortionsOfGarbage(quantity);
     },
 
-    createCertainAmountOfGarbage: function(quantity) {
+    createRandomGarbage: function(quantity) {
         var diameter = params.getParameter("gameDiameter");
 
         for (let j = 0; j < quantity; ++j) {
@@ -67,6 +69,26 @@ GameMechanics.prototype = {
                                         diameter / 2 - OFFSET_BORDER);
 
             this.createSingleGarbage(element, position, j);
+        }
+    },
+
+    createPortionsOfGarbage: function(quantity) {
+        var diameter = params.getParameter("gameDiameter");
+        let i = 0;
+        for (let key in portions) {
+            let elementQuantity = quantity / 100 * portions[key];
+
+            for (let j = 0; j < elementQuantity; ++j) {
+                var OFFSET_BORDER = 40;
+                var OFFSET_PLAYER = 1000;
+                var position = this.game_map
+                    .getRandomPositionInside(OFFSET_PLAYER,
+                        diameter / 2 - OFFSET_BORDER);
+
+
+                this.createSingleGarbage(key, position, i);
+                ++i;
+            }
         }
     },
 

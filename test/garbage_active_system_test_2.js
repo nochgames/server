@@ -27,7 +27,7 @@ describe('garbageActive array contains all active particles' , function() {
             gamemechanics.websocketservice
                 = gamemechanics.context.websocketservice = websocketserviceMock;
             gamemechanics.configureEmitter();
-            gamemechanics.createCertainAmountOfGarbage(numberOfGarbage);
+            gamemechanics.createRandomGarbage(numberOfGarbage);
             gamemechanics.run();
             this.timeout(30000);
 

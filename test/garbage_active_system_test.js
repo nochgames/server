@@ -40,7 +40,7 @@ describe('Active garbage array should contain all moving bodies',
             gamemechanics.websocketservice
                 = gamemechanics.context.websocketservice = websocketserviceMock;
             gamemechanics.configureEmitter();
-            gamemechanics.createCertainAmountOfGarbage(number);
+            gamemechanics.createRandomGarbage(number);
             gamemechanics.run();
             var allBodies = Composite.allBodies(gamemechanics.context.engine.world);
             it('should contain all moving objects', function (done) {
