@@ -58,22 +58,36 @@ GameMechanics.prototype = {
         var diameter = params.getParameter("gameDiameter");
 
         for (let j = 0; j < quantity; ++j) {
-            var element = elements[Math.ceil(Math.random() * 10 - 1)];
+            var element = this.getRandomElement();
 
             var OFFSET_BORDER = 40;
             var OFFSET_PLAYER = 1000;
-            var position = this.game_map.getRandomPositionInside(OFFSET_PLAYER,
-                diameter / 2 - OFFSET_BORDER);
+            var position = this.game_map
+                .getRandomPositionInside(OFFSET_PLAYER,
+                                        diameter / 2 - OFFSET_BORDER);
 
-            var singleGarbage = new Garbage(position, this.context.engine, element,
-                                            this.context.playersEmitter, this.context.chemistry);
-
-            this.context.garbage.push(singleGarbage);
-            this.context.garbageActive.push(singleGarbage.body);
-            singleGarbage.body.number = j;
-            this.subscribeToSleepEnd(singleGarbage.body);
-            this.subscribeToSleepStart(singleGarbage.body);
+            this.createSingleGarbage(element, position, j);
         }
+    },
+
+    createSingleGarbage: function(element, position, number) {
+        var singleGarbage = new Garbage(position, this.context.engine, element,
+            this.context.playersEmitter, this.context.chemistry);
+
+        this.context.garbage.push(singleGarbage);
+        this.context.garbageActive.push(singleGarbage.body);
+        singleGarbage.body.number = number;
+        this.subscribeToSleepEnd(singleGarbage.body);
+        this.subscribeToSleepStart(singleGarbage.body);
+    },
+
+    getRandomElement() {
+        return elements[Math.ceil(Math.random() * 10 - 1)];
+    },
+
+    getCertainPossibilityElement() {
+        var key = Math.random() * 100;
+        //TODO finish this function
     },
 
     addPlayerStub: function(ws) {
