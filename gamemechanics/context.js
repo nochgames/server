@@ -27,6 +27,7 @@ Context.prototype = {
                 return this.garbage;
             case "n":
             case "p":
+            case "ph":
                 return this.freeProtons;
         }
     },
@@ -53,6 +54,7 @@ Context.prototype = {
                 return this.garbage[body.number];
             case "n":
             case "p":
+            case "ph":
                 return this.freeProtons[body.number];
         }
     },
