@@ -202,6 +202,9 @@ BasicParticle.prototype = {
     setElement: function(elem) {
         if (elem) {
             var element = params.getParameter(elem);
+            if (!element) {
+                throw new Error(new Date() + '\nIncorrect behaviour');
+            }
             this.body.element = elem;
             var coefficient = (element.radius + this.CHARGE_RADIUS)
                 / this.body.circleRadius;
