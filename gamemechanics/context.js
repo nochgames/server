@@ -56,6 +56,11 @@ Context.prototype = {
             case "p":
             case "ph":
                 return this.freeProtons[body.number];
+            default:
+                console.error("Body has no main object. number: " +
+                    body.number + "\nelement: " + body.element +
+                    "\nid: " + body.id + "\ntype: " + body.inGameType +
+                    "\ndeleted ids: " + this.recyclebin.deletedIds);
         }
     },
 
