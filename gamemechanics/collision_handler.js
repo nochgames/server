@@ -88,7 +88,7 @@ CollisionHandler.prototype = {
         this.link(garbageBody, playerBody);
 
         var newRadius = Geometry.calculateDistance(this.context.getPlayer(playerBody)
-            .body.position, garbageBody.position);
+                                                .body.position, garbageBody.position);
         garbageBody.player = this.context.getPlayer(playerBody);
         this.context.getPlayer(playerBody).checkResizeGrow(newRadius);
 
@@ -149,6 +149,10 @@ CollisionHandler.prototype = {
         var garbageBody = massA < massB ? bodyA : bodyB;
 
         this.context.playersEmitter.emit('player died', { player: this.context.getPlayer(garbageBody) });
+
+        ++this.context.getPlayer(playerBody).kills;
+        this.context.playersEmitter.emit('murder', { player: this.context.getPlayer(playerBody) });
+
         this.context.getPlayer(garbageBody).lose(this.context.engine,
             this.context.players, this.context.garbage, playerBody);
         this.context.getMainObject(garbageBody).reverse();

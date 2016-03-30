@@ -146,6 +146,18 @@ var Messages = {
             [API_NOCH.getCode("transformed garbage id")]: particleId,
             [API_NOCH.getCode("color")]: color
         }
+    },
+
+    scoreBoard: function(scoreBoard) {
+        return {
+            [API_NOCH.getCode("scoreBoard")]: scoreBoard
+        }
+    },
+
+    playerShot: function(id) {
+        return {
+            [API_NOCH.getCode("id of player who shot ph")]: id
+        }
     }
 };
 

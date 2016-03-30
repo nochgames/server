@@ -161,6 +161,7 @@ GameMechanics.prototype = {
         this.subscribeToSleepEnd(player.body);
 
         this.context.chemistry.updateGarbageConnectingPossibilityForPlayer(index);
+        this.updateScoreBoard();
 
         return player;
     },
@@ -315,6 +316,20 @@ GameMechanics.prototype = {
         return true;
     },
 
+    updateScoreBoard: function() {
+        var scoreBoard = this.context.players.filter(function(player) {
+            if (player && !player.isStub) {
+                return player;
+            }
+        }).sort(function(playerA, playerB) {
+            return playerB.kills - playerA.kills;
+        }).slice(0, 7).map(function(player) {
+            return { name: player.name, kills: player.kills }
+        });
+
+        this.context.websocketservice.sendEverybody(Messages.scoreBoard(scoreBoard));
+    },
+
     checkGarbageVisibility: function() {
         var objects = this.context.garbage.concat(this.game_map.border)
             .concat(this.context.freeProtons);
@@ -352,6 +367,14 @@ GameMechanics.prototype = {
             self.checkGarbageVisibility();
         });
 
+        this.context.playersEmitter.on('shot fired', function(event) {
+            self.context.websocketservice.sendEverybody(Messages.playerShot(event.shid));
+        });
+
+        this.context.playersEmitter.on('murder', function(event) {
+            self.updateScoreBoard();
+        });
+
         this.context.playersEmitter.on('player died', function(event) {
             var playerId = self.context.players.indexOf(event.player);
             self.context.websocketservice.sendEverybody(Messages.deletePlayer(
@@ -364,6 +387,7 @@ GameMechanics.prototype = {
             for (let i = 0; i < objects.length; ++i) {
                 Util_tools.deleteFromArray(objects[i].body.playersWhoSee, playerId);
             }
+            self.updateScoreBoard();
         });
 
         self.context.playersEmitter.on('particle died', function(event) {
@@ -374,14 +398,16 @@ GameMechanics.prototype = {
         this.context.playersEmitter.on('element changed', function(event) {
             if (event.body.inGameType == 'player') {
                 self.context.websocketservice.sendEverybody(
-                    Messages.changeElementGarbage(event.body.id,
-                    event.body.element));
+                    Messages.changeElementGarbage(
+                        event.body.id,
+                        event.body.element));
 
             } else {
                 self.context.websocketservice
-                    .sendSpecificPlayers(Messages.changeElementGarbage(event.body.id,
-                        event.body.element),
-                        event.body.playersWhoSee);
+                    .sendSpecificPlayers(Messages.changeElementGarbage(
+                                        event.body.id,
+                                        event.body.element),
+                                        event.body.playersWhoSee);
             }
 
             self.context.chemistry.updateGarbageConnectingPossibility();
@@ -552,6 +578,19 @@ GameMechanics.prototype = {
                     { return ga.id }
                 ).sort());
         }, 400));
+    },
+
+    logPlayerNumbers: function() {
+        var self = this;
+        this.intervals.push(setInterval(function() {
+            console.log("players: " + self.context.players.map(function(player) {
+                    if (player) {
+                        return player.body.playerNumber;
+                    } else {
+                        return null;
+                    }
+                }));
+        }, 200));
     },
 
     logMemoryUsage: function() {

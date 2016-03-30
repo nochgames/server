@@ -22,6 +22,8 @@ var Player = function(ws, name, position, engine, elem, emitter, websocketservic
 
     this.name = name;
 
+    this.kills = 0;
+
     this.isStub = false;
     this.ws = ws;
     this.websocketservice = websocketservice;
@@ -119,6 +121,8 @@ Player.prototype = {
                 }, element.protonMorphing);
             }
 
+            this.body.emitter.emit('shot fired', { shid: this.body.id });
+
             //debugging
             /*nucleonBody.inGameType =
                 nucleonBody.element = "p";*/
@@ -165,7 +169,7 @@ Player.prototype = {
         if (playerIndex > -1) {
             delete playersArray[playerIndex];
         } else {
-            throw new Error(new Date() + '\nincorrect behaviour');
+            throw new Error(new Date() + '\nIncorrect behaviour');
         }
     },
 

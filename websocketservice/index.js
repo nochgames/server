@@ -91,7 +91,13 @@ WebsocketService.prototype = {
         var ws = socket;
 
         return function(message) {
-            message = JSON.parse(message);
+            try {
+                message = JSON.parse(message);
+            } catch (e) {
+                console.error("Invalid json " + message);
+                return;
+            }
+
             if ('startGame' in message) {
 
                 var player = self.gamemechanics.addPlayer(ws, stub.body.position, stub.number,

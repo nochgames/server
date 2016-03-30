@@ -28,5 +28,6 @@
   "player is dead": "dead",
   "garbage available": "gbav",
   "garbage not available": "gbnav",
-  "availability": "av"
+  "availability": "av",
+  "scoreBoard": "sb"
 }

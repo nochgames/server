@@ -37,7 +37,14 @@ Context.prototype = {
         if (player !== undefined) {
             return player;
         } else {
-            console.log("No such player! id: " + body.playerNumber);
+            console.log("No such player! id: " + body.playerNumber +
+                        "\nplayers: " + this.players.map(function(player) {
+                    if (player) {
+                        return player.body.playerNumber;
+                    } else {
+                        return null;
+                    }
+                }));
         }
     },
 
