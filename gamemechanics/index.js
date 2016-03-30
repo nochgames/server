@@ -544,7 +544,10 @@ GameMechanics.prototype = {
 
         this.intervals.push(setInterval(function() {
             if (!self.context.players.filter(player =>
-                { return player; }).length) self.context.playersEmitter.emit('no players');
+                { return player; }).length) {
+                self.checkGarbageVisibility();
+                self.context.playersEmitter.emit('no players');
+            }
 
             Matter.Engine.update(self.context.engine, self.context.engine.timing.delta);
             self.recyclebin.empty();
