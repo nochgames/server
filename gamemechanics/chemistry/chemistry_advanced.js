@@ -18,6 +18,16 @@ class ChemistryAdvanced {
 
     constructor(context) {
         this.context = context;
+        let elements = params.getParameter("elements");
+        this.testObjects = [];
+        let element;
+        for (let i = 0; i < elements; ++i) {
+            element = params.getParameter(elements[i]);
+            this.testObjects.push({
+                element: elements[i],
+                energy: element.energy
+            })
+        }
     }
 
     subtractBondEnergy(bodyA, bodyB) {
@@ -120,7 +130,8 @@ class ChemistryAdvanced {
     }
 
     getColorForPlayer(body, playNumber) {
-        if (this.context.players[playNumber].isStub || this.checkParticleAvailabilityForPlayer(body, playNumber)) {
+        if (this.context.players[playNumber].isStub ||
+            this.checkParticleAvailabilityForPlayer(body, playNumber)) {
             return 'green';
         }
         return 'grey'
@@ -206,6 +217,16 @@ class ChemistryAdvanced {
                         Messages.garbageIsNotAvailableAnymore(this.context.garbage[i].body.id),
                         this.context.players[playerIndex])
                 }
+            }
+        }
+    }
+
+    updateElementConnectionPossibility(playerIndex) {
+        for (let i = 0; i < this.testObjects.length; ++i) {
+            if (this.checkConnectingPossibilityGeneral(
+                this.context.players[playerIndex],
+                this.testObjects[i], this.checkConnectingPossibility)) {
+                //TODO: figure out way to draw player parts differently
             }
         }
     }

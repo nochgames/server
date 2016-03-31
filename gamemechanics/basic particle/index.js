@@ -18,7 +18,7 @@ var Engine = Matter.Engine,
     Vector = Matter.Vector;
 
 var BasicParticle = function(position, engine, elem, emitter, chemistry) {
-    this.CHARGE_RADIUS = 5;
+    this.CHARGE_RADIUS = 8;
 
     //creating physics body for player
     var element = params.getParameter(elem);

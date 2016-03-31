@@ -431,13 +431,20 @@ GameMechanics.prototype = {
 
         self.context.playersEmitter.on('decoupled', function(event) {
 
-            self.context.websocketservice.sendSpecificPlayers(
-                Messages.deleteBond(event.decoupledBodyA.id, event.decoupledBodyB.id),
-                event.decoupledBodyA.playersWhoSee);
+            let playersWhoSee = event.decoupledBodyA.playersWhoSee.concat();
+            for (let i = 0; i < event.decoupledBodyB.playersWhoSee.length; ++i) {
+                if (playersWhoSee.indexOf(event.decoupledBodyB.playersWhoSee[i]) == -1) {
+                    playersWhoSee.push(event.decoupledBodyB.playersWhoSee[i]);
+                }
+            }
 
             self.context.websocketservice.sendSpecificPlayers(
                 Messages.deleteBond(event.decoupledBodyA.id, event.decoupledBodyB.id),
-                event.decoupledBodyB.playersWhoSee);
+                playersWhoSee);
+
+            /*self.context.websocketservice.sendSpecificPlayers(
+                Messages.deleteBond(event.decoupledBodyA.id, event.decoupledBodyB.id),
+                event.decoupledBodyB.playersWhoSee);*/
 
             self.addPlayerToUpdateConnectionPossibility(self.context.players.indexOf(event.p))
         });
