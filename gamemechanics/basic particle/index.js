@@ -17,54 +17,55 @@ var Engine = Matter.Engine,
     Composite = Matter.Composite,
     Vector = Matter.Vector;
 
-var BasicParticle = function(position, engine, elem, emitter, chemistry) {
-    this.CHARGE_RADIUS = 8;
+class BasicParticle {
+    constructor(position, engine, elem, emitter, chemistry) {
+        this.CHARGE_RADIUS = 8;
 
-    //creating physics body for player
-    var element = params.getParameter(elem);
-    this.body = Bodies.circle(position.x, position.y,
-        element.radius + this.CHARGE_RADIUS,
-        { restitution: 0.99 });
+        //creating physics body for player
+        var element = params.getParameter(elem);
+        this.body = Bodies.circle(position.x, position.y,
+            element.radius + this.CHARGE_RADIUS,
+            {restitution: 0.99});
 
-    this.body.occupiedAngle = null;
-    this.body.inertia = 0;
-    this.body.inverseInertia = 0;
+        this.body.occupiedAngle = null;
+        this.body.inertia = 0;
+        this.body.inverseInertia = 0;
 
-    this.body.emitter = emitter;
-    this.body.playersWhoSee = [];
+        this.body.emitter = emitter;
+        this.body.playersWhoSee = [];
 
-    /*Object.defineProperty(this.body, "energy", { set: function(value) { if (value > 0) this } });*/
-    this.body.energy = 0;
-    this.body.chemicalChildren = [];
+        /*Object.defineProperty(this.body, "energy",
+         { set: function(value) { if (value > 0) this } });*/
+        this.body.energy = 0;
+        this.body.chemicalChildren = [];
 
-    this.body.chemistry = chemistry;
-    chemistry.setElement(elem, this);
+        this.body.chemistry = chemistry;
+        chemistry.setElement(elem, this);
 
-    this.body.bondAngles = [];
-    var angle = 0;
-    for (let i = 0; i < this.body.elValency; ++i) {
-        this.body.bondAngles.push({ "angle": angle, "available": true });
-        angle += 2 * Math.PI / this.body.elValency;
+        this.body.bondAngles = [];
+        var angle = 0;
+        for (let i = 0; i < this.body.elValency; ++i) {
+            this.body.bondAngles.push({"angle": angle, "available": true});
+            angle += 2 * Math.PI / this.body.elValency;
+        }
+
+        World.addBody(engine.world, this.body);
+
+        var self = this;
+        this.body.previousLocalPosition = {x: 0, y: 0};
+        this.body.superMutex = 0;
+        this.body.chemicalBonds = 0;
+        this.body.intervalID = null;
+
+        this.body.getFreeBonds = function () {
+            return self.body.elValency - self.body.chemicalBonds;
+        };
+        this.body.getAvailableNeutrons = function () {
+            return self.body.maxNeutrons - self.body.neutrons;
+        }
     }
 
-    World.addBody(engine.world, this.body);
-
-    var self = this;
-    this.body.previousLocalPosition = { x: 0, y: 0 };
-    this.body.superMutex = 0;
-    this.body.chemicalBonds = 0;
-    this.body.intervalID = null;
-
-    this.body.getFreeBonds = function() {
-        return self.body.elValency - self.body.chemicalBonds;
-    };
-    this.body.getAvailableNeutrons = function() {
-        return self.body.maxNeutrons - self.body.neutrons;
-    };
-};
-
-BasicParticle.prototype = {
-    traversDST: function(node, visit, visitAgain, engine) {
+    traversDST(node, visit, visitAgain, engine) {
         visit(node, engine);
         if (!node.chemicalChildren) {
             if (visitAgain) {
@@ -80,9 +81,9 @@ BasicParticle.prototype = {
         if (visitAgain) {
             visitAgain(node);
         }
-    },
+    }
 
-    resultDST: function(node, visit, additionalParameter) {
+    resultDST(node, visit, additionalParameter) {
         var result = visit(node, additionalParameter);
         if (result) {
             return result
@@ -99,10 +100,10 @@ BasicParticle.prototype = {
             }
         }
         return false;
-    },
+    }
 
     //second part of disconnecting body from player
-    letGo: function(body) {
+    letGo(body) {
         body.chemicalChildren = [];
         var speed = Math.random() * 3;
 
@@ -121,10 +122,10 @@ BasicParticle.prototype = {
             x: speed * mx / Math.sqrt(mx * mx + my * my),
             y: speed * my / Math.sqrt(mx * mx + my * my)
         });
-    },
+    }
 
     //first part of disconnecting body from player
-    free: function(node, engine) {
+    free(node, engine) {
         clearInterval(node.intervalID);
         node.collisionFilter.mask = 0x0001;
         //node.inGameType = "temporary undefined";
@@ -197,9 +198,9 @@ BasicParticle.prototype = {
             node.inGameType = "garbage";
             node.playerNumber = -1175;
         }
-    },
+    }
 
-    setElement: function(elem) {
+    setElement(elem) {
         if (elem) {
             var element = params.getParameter(elem);
             if (!element) {
@@ -237,9 +238,9 @@ BasicParticle.prototype = {
             }
             this.body.emitter.emit("element changed", { body: this.body });
         }
-    },
+    }
 
-    createNucleon: function(particle, shotPos, nucleonsArray, engine) {
+    createNucleon(particle, shotPos, nucleonsArray, engine) {
         var element = params.getParameter(particle);
 
         var OFFSET_SHOT = 20;
@@ -276,9 +277,9 @@ BasicParticle.prototype = {
         nucleonBody.number = nucleonsArray.indexOf(nucleon);
         this.body.emitter.emit('particle appeared', { body: nucleonBody });
         return nucleonBody;
-    },
+    }
 
-    returnPostRevertTree: function() {
+    returnPostRevertTree() {
         function revertTree(node) {
             if (revertTree.previousNode) {
                 node.chemicalChildren.push(revertTree.previousNode);
@@ -291,9 +292,9 @@ BasicParticle.prototype = {
         }
         revertTree.previousNode = null;
         return revertTree;
-    },
+    }
 
-    prepareForBond: function(newPlayerBody) {
+    prepareForBond(newPlayerBody) {
         this.traversDST(this.body, function(node) {
 
             node.inGameType += " temporary undefined";
@@ -302,9 +303,9 @@ BasicParticle.prototype = {
                 node.playerNumber = newPlayerBody.playerNumber;
             }
         });
-    },
+    }
 
-    markAsPlayer: function(newPlayerBody) {
+    markAsPlayer(newPlayerBody) {
         this.traversDST(this.body, function(node) {
 
             node.inGameType = "playerPart";
@@ -312,27 +313,27 @@ BasicParticle.prototype = {
 
             node.emitter.emit('became playerPart', { garbageBody: node });
         });
-    },
+    }
 
-    die: function(engine) {
+    die(engine) {
         this.traversDST(this.body, this.free, this.letGo, engine);
-    },
+    }
 
-    reversDST: function(node, visit) {
+    reversDST(node, visit) {
         if (!node.chemicalParent) {
             visit(node);
             return;
         }
         this.reversDST(node.chemicalParent, visit);
         visit(node);
-    },
+    }
 
-    reverse: function() {
+    reverse() {
         var func = this.returnPostRevertTree();
         this.reversDST(this.body, func);
-    },
+    }
 
-    checkDecoupling: function(momentum, engine) {
+    checkDecoupling(momentum, engine) {
         var bondStrength = 30;
         if (momentum > bondStrength && this.body.chemicalBonds) {
             this.traversDST(this.body, this.free, this.letGo, engine);
@@ -340,9 +341,9 @@ BasicParticle.prototype = {
                 this.body.player.checkResizeShrink();
             }
         }
-    },
+    }
 
-    getClosestAngle: function(angle) {
+    getClosestAngle(angle) {
         //console.log("given angle " + angle);
         var bondAngles = this.body.bondAngles;
         var difference = this.body.bondAngles.map(function(obj) {
@@ -362,17 +363,17 @@ BasicParticle.prototype = {
         this.body.bondAngles[difference[0].index].available = false;
         //console.log("closest angle " + this.body.bondAngles[difference[0].index].angle);
         return this.body.bondAngles[difference[0].index].angle;
-    },
+    }
 
-    freeBondAngle: function(angle) {
+    freeBondAngle(angle) {
         for (let i = 0; i < this.body.bondAngles.length; ++i) {
             if (this.body.bondAngles[i].angle == angle) {
                 this.body.bondAngles[i].available = true;
             }
         }
-    },
+    }
 
-    reconnectBond: function(child, engine) {
+    reconnectBond(child, engine) {
         if (child.constraint2) {
             this.freeBondAngle.call({body: child}, child.constraint2.chemicalAngle);
 
@@ -407,9 +408,9 @@ BasicParticle.prototype = {
             World.add(engine.world, [constraintA, constraintB]);
             garbageBody.collisionFilter.mask = 0x0001;
         });
-    },
+    }
 
-    correctBondAnglesFinal: function(engine) {
+    correctBondAnglesFinal(engine) {
         var body = this.body;
         for (let i = 0; i < body.chemicalChildren.length; ++i) {
 
@@ -419,9 +420,9 @@ BasicParticle.prototype = {
                 this.reconnectBond(child, engine);
             }
         }
-    },
+    }
 
-    changeCharge: function(value, engine, nucleonsArray) {
+    changeCharge(value, engine, nucleonsArray) {
 
         this.CHARGE_RADIUS = 5;
 
@@ -451,9 +452,9 @@ BasicParticle.prototype = {
         if (this.body.chemicalBonds) {
             this.correctBondAngles(engine);
         }
-    },
+    }
 
-    connectBody: function(garbageBody, finalCreateBond) {
+    connectBody(garbageBody, finalCreateBond) {
         var i = 0;
         var N = 30;     // Number of iterations
 
@@ -508,9 +509,9 @@ BasicParticle.prototype = {
                 }
             }
         }, 30);
-    },
+    }
 
-    correctParentBond: function(garbageBody, parentBody) {
+    correctParentBond(garbageBody, parentBody) {
         var rotationAngle = Geometry.findAngle(garbageBody.position,
             parentBody.position, garbageBody.angle);
 
@@ -518,9 +519,9 @@ BasicParticle.prototype = {
 
         Body.rotate(garbageBody, (rotationAngle - garbageAngle));
         return garbageAngle;
-    },
+    }
 
-    correctBondAngles: function(engine) {
+    correctBondAngles(engine) {
         if (this.body.inGameType == 'player') {
             this.correctBondAnglesFinal(engine);
         } else {
@@ -541,13 +542,13 @@ BasicParticle.prototype = {
             }
             this.correctBondAnglesFinal(engine);
         }
-    },
+    }
 
-    dismountBranch: function(body, engine) {
+    dismountBranch(body, engine) {
         this.traversDST(body, this.free, this.letGo, engine);
-    },
+    }
 
-    dismountLightestBranch: function(engine) {
+    dismountLightestBranch(engine) {
         if (this.body.inGameType == 'player') {
             let child = {
                 body: null,
@@ -580,6 +581,6 @@ BasicParticle.prototype = {
             }
         }
     }
-};
+}
 
 module.exports = BasicParticle;

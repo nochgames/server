@@ -16,63 +16,65 @@ var Engine = Matter.Engine,
     Composite = Matter.Composite,
     Vector = Matter.Vector;
 
-var Player = function(ws, name, position, engine, elem, emitter, websocketservice, chemistry) {
+class Player extends basicParticle {
+    constructor(ws, name, position, engine, elem,
+                  emitter, websocketservice, chemistry) {
 
-    basicParticle.call(this, position, engine, elem, emitter, chemistry);
+        super(position, engine, elem,
+                            emitter, chemistry);
 
-    this.name = name;
+        this.name = name;
 
-    this.kills = 0;
+        this.kills = 0;
 
-    this.isStub = false;
-    this.ws = ws;
-    this.websocketservice = websocketservice;
+        this.isStub = false;
+        this.ws = ws;
+        this.websocketservice = websocketservice;
 
-    this.isReady = false;
+        this.isReady = false;
 
-    this.previousPosition = { x: 0, y: 0 };
-    this.body.inGameType = "player";
-    this.body.player = this;
-    this.body.realMass = this.body.mass;
+        this.previousPosition = { x: 0, y: 0 };
+        this.body.inGameType = "player";
+        this.body.player = this;
+        this.body.realMass = this.body.mass;
 
-    this.body.realRadius = this.body.circleRadius;
-    this.body.multiplier =  Math.sqrt(this.body.realRadius);
-    this.resolution = { width: 0, height: 0 };
-    this.body.coefficient = 1;
-    this.websocketservice.sendToPlayer(
-        Messages.changeCoefficient(this.body.coefficient), this);
-};
+        this.body.realRadius = this.body.circleRadius;
+        this.body.multiplier =  Math.sqrt(this.body.realRadius);
+        this.resolution = { width: 0, height: 0 };
+        this.body.coefficient = 1;
+        this.websocketservice.sendToPlayer(
+            Messages.changeCoefficient(this.body.coefficient), this);
+    }
 
-Player.prototype = {
-    setResolution: function(res) {
+    setResolution(res) {
         this.resolution.width = res["x"];
         this.resolution.height = res["y"];
-    },
+    }
 
-    getLocalPosition: function() {
+    getLocalPosition() {
         return { x: this.resolution.width / 2,
                  y: this.resolution.height / 2 };
-    },
+    }
 
-    makeMassCalc: function() {
+    makeMassCalc() {
         function addMass(body) {
             addMass.mass += body.mass;
         }
         addMass.mass = 0;
         return addMass;
-    },
+    }
 
-    recalculateMass: function() {
+    recalculateMass() {
         this.body.realMass = this.calculateMass(this.body);
-    },
+    }
 
-    calculateMass: function(body) {
+    calculateMass(body) {
         var func = this.makeMassCalc();
         this.traversDST(body, func);
         return func.mass;
-    },
+    }
 
-    shoot: function(particle, shotPos, nucleonsArray, engine) {
+    shoot(particle, shotPos, nucleonsArray, engine) {
 
         if (particle == "p" && this.body.element == "H") return false;
         if (particle == "n" && this.body.neutrons == 0) return false;
@@ -126,12 +128,19 @@ Player.prototype = {
             //debugging
             /*nucleonBody.inGameType =
                 nucleonBody.element = "p";*/
+
+            this.websocketservice.sendEverybody(Messages.shotFired(particle, this.body.id));
+            if (particle == 'p') {
+                this.websocketservice.sendEverybody(Messages.changeElementPlayer(
+                    this.body.id, this.body.element));
+            }
+
             return true;
         }
         return false;
-    },
+    }
 
-    lose: function(engine, playersArray, garbageArray, newPlayerBody) {
+    lose(engine, playersArray, garbageArray, newPlayerBody) {
 
         this.websocketservice.closeSocket(Messages.notifyDeath(true), this);
 
@@ -142,10 +151,10 @@ Player.prototype = {
             this.garbagify(playersArray, garbageArray);
             this.die(engine);
         }
-    },
+    }
 
     //turns player into garbage before appending it to another player
-    garbagify: function(playersArray, garbageArray, newPlayerBody) {
+    garbagify(playersArray, garbageArray, newPlayerBody) {
 
         var playerIndex = this.body.playerNumber;
         garbageArray.push(this);
@@ -171,9 +180,17 @@ Player.prototype = {
         } else {
             throw new Error(new Date() + '\nIncorrect behaviour');
         }
-    },
+    }
 
-    applyVelocity: function(mx, my) {
+    applyVelocityGlobal(mx, my) {
+        mx = mx - player.getLocalPosition().x;
+        my = my - player.getLocalPosition().y;
+
+        this.applyVelocity(mx, my);
+    }
+
+    applyVelocity(mx, my) {
+
         var speed = this.body.nuclearSpeed;
 
         var PERCENT_FULL = 100;
@@ -218,9 +235,9 @@ Player.prototype = {
             speed / forceCoefficient * my / Math.sqrt(mx * mx + my * my)
         ));
 
-    },
+    }
 
-    checkResizeGrow: function(newRadius) {
+    checkResizeGrow(newRadius) {
         if (newRadius > this.body.realRadius) {
             this.body.realRadius = newRadius;
             this.body.coefficient = this.body.multiplier / Math.sqrt(this.body.realRadius);
@@ -228,9 +245,9 @@ Player.prototype = {
 
             this.websocketservice.sendToPlayer(Messages.changeCoefficient(this.body.coefficient), this);
         }
-    },
+    }
 
-    checkResizeShrink: function() {
+    checkResizeShrink() {
         this.body.realRadius = this.body.circleRadius;
 
         var self = this;
@@ -254,17 +271,17 @@ Player.prototype = {
         this.coefficientTimeOut = setTimeout(function() {
             self.body.coefficient = coefficient;
         }, 2000);
-    },
+    }
 
-    updatePreviousPosition: function() {
+    updatePreviousPosition() {
         if (Math.abs(this.previousPosition.x - this.body.position.x) > 1 ||
             Math.abs(this.previousPosition.x - this.body.position.x) > 1) {
             this.previousPosition.x = this.body.position.x;
             this.previousPosition.y = this.body.position.y;
         }
-    },
+    }
 
-    inScreen: function(object, tolerance) {
+    inScreen(object, tolerance) {
         if (!tolerance) tolerance = 0;
         return (object.body.position.x - object.body.circleRadius < this.body.position.x +
         this.resolution.width / this.body.coefficient / 2 + tolerance &&
@@ -275,8 +292,6 @@ Player.prototype = {
         object.body.position.y + object.body.circleRadius > this.body.position.y -
         this.resolution.height / this.body.coefficient / 2 - tolerance);
     }
-};
-
-Player.prototype.__proto__ = basicParticle.prototype;
+}
 
 module.exports = Player;

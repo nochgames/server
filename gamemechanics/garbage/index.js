@@ -13,19 +13,15 @@ var Engine = Matter.Engine,
     Body = Matter.Body,
     Composite = Matter.Composite;
 
-var Garbage = function(position, engine, elem, emitter, chemistry) {
+class Garbage extends basicParticle {
+    constructor(position, engine, elem, emitter, chemistry) {
 
-    basicParticle.call(this, position, engine, elem, emitter, chemistry);
+        super(this, position, engine, elem, emitter, chemistry);
 
-    this.body.frictionAir = 0.003;
+        this.body.frictionAir = 0.003;
 
-    this.body.inGameType = "garbage";
-};
-
-Garbage.prototype = {
-
-};
-
-Garbage.prototype.__proto__ = basicParticle.prototype;
+        this.body.inGameType = "garbage";
+    }
+}
 
 module.exports = Garbage;

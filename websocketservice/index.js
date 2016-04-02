@@ -133,30 +133,21 @@ WebsocketService.prototype = {
 
             if ('mouseX' in parsedMessage) {
 
-                var mouseX = parsedMessage.mouseX - player.getLocalPosition().x;
-                var mouseY = parsedMessage.mouseY - player.getLocalPosition().y;
-
-                player.applyVelocity(mouseX, mouseY);
+                player.applyVelocityGlobal(mouseX, mouseY);
             }
 
             if ('shotX' in parsedMessage) {
 
                 //in case someone will send old data manually
-                if (parsedMessage.particle == "p" || parsedMessage.particle == "n") return false;
+                if (parsedMessage.particle == "p" || parsedMessage.particle == "n") return;
 
                 var shotPos = {
                     x: parsedMessage.shotX - player.getLocalPosition().x,
                     y: parsedMessage.shotY - player.getLocalPosition().y
                 };
-                if (player.shoot(parsedMessage.particle, shotPos,
+                player.shoot(parsedMessage.particle, shotPos,
                         self.gamemechanics.context.freeProtons,
-                        self.gamemechanics.context.engine)) {
-                    self.sendEverybody(Messages.shotFired(parsedMessage.particle, player.body.id));
-                    if (parsedMessage.particle == 'p') {
-                        self.sendEverybody(Messages.changeElementPlayer(
-                            player.body.id, player.body.element));
-                    }
-                }
+                        self.gamemechanics.context.engine);
             }
         }
     },
