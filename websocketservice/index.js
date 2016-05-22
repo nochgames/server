@@ -109,10 +109,16 @@ WebsocketService.prototype = {
         var ws = socket;
 
         return function(message) {
+
             try {
                 message = JSON.parse(message);
             } catch (e) {
                 console.error("Invalid json " + message);
+                return;
+            }
+            
+            if (!(message instanceof Object)) {
+                console.error("Invalid message " + message)
                 return;
             }
 
@@ -141,7 +147,11 @@ WebsocketService.prototype = {
         return function(message) {
             //console.log('player ' + id + " says " + message);
 
-            var parsedMessage = JSON.parse(message);
+            try {
+                var parsedMessage = JSON.parse(message);
+            } catch (e) {
+                console.error("Invalid JSON " + message);
+            }
 
             if ('x' in parsedMessage) {
                 player.setResolution(parsedMessage);
