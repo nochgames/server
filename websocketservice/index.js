@@ -11,6 +11,7 @@ var WebsocketService = function(gamemechanics) {
     this.onCloseMap = new Map();
     this.onMessageMap = new Map();
     this.onErrorMap = new Map();
+    this.IPs = new Set();
 
     this.webSocketServer = new WebSocketServer.Server({
         port: 8085
@@ -21,6 +22,14 @@ var WebsocketService = function(gamemechanics) {
 
     var self = this;
     this.webSocketServer.on('connection', function(ws) {
+        if (self.IPs.has(ws._socket.remoteAddress)) {
+            ws.close();
+            return;
+        }
+        self.IPs.add(ws._socket.remoteAddress);
+
+        console.log(ws._socket.remoteAddress);
+        
         if (!gamemechanics.isRunning) gamemechanics.run();
 
 
@@ -133,7 +142,7 @@ WebsocketService.prototype = {
 
             if ('mouseX' in parsedMessage) {
 
-                player.applyVelocityGlobal(mouseX, mouseY);
+                player.applyVelocityGlobal(parsedMessage.mouseX, parsedMessage.mouseY);
             }
 
             if ('shotX' in parsedMessage) {
@@ -157,6 +166,8 @@ WebsocketService.prototype = {
         var number = stub.number;
 
         return function() {
+            console.log("deleting stub IP " + this._socket.remoteAddress);
+            self.IPs.delete(this._socket.remoteAddress);
             delete self.gamemechanics.context.players[number];
         }
     },
@@ -181,6 +192,10 @@ WebsocketService.prototype = {
         var self = this;
         return function(event) {
             console.log('player disconnected ' + player.body.number);
+            
+            console.log("deleting player IP " + this._socket.remoteAddress);
+            self.IPs.delete(this._socket.remoteAddress);
+            
             if (player.body.inGameType == "player") {
                 self.gamemechanics.recyclebin.prepareToDelete(player.body);
             }

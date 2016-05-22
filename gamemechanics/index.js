@@ -153,6 +153,8 @@ GameMechanics.prototype = {
 
         //this.notifyAndInformNewPlayer(player);
         this.notifyEverybodyAboutNewPlayer(player);
+        //risky
+        this.notifyStubAboutPlayers(player);
 
         //Most player bodies never sleep, so they never throw
         //sleepEnd event so they can't be in garbageActive array

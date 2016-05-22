@@ -2,6 +2,8 @@
  * Created by fatman on 13/07/15.
  */
 
+'use strict';
+
 var params = require("db_noch");
 var elements = params.getParameter("elements");
 var Matter = require('matter-js/build/matter.js');
@@ -16,7 +18,7 @@ var Engine = Matter.Engine,
 class Garbage extends basicParticle {
     constructor(position, engine, elem, emitter, chemistry) {
 
-        super(this, position, engine, elem, emitter, chemistry);
+        super(position, engine, elem, emitter, chemistry);
 
         this.body.frictionAir = 0.003;
 

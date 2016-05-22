@@ -2,6 +2,8 @@
  * Created by fatman on 06/07/15.
  */
 
+'use strict';
+
 var Messages = require("../../messages");
 var Matter = require('matter-js/build/matter.js');
 var params = require("db_noch");
@@ -183,8 +185,8 @@ class Player extends basicParticle {
     }
 
     applyVelocityGlobal(mx, my) {
-        mx = mx - player.getLocalPosition().x;
-        my = my - player.getLocalPosition().y;
+        mx = mx - this.getLocalPosition().x;
+        my = my - this.getLocalPosition().y;
 
         this.applyVelocity(mx, my);
     }
