@@ -75,7 +75,16 @@ WebsocketService.prototype = {
         this.onCloseMap.delete(reciever);
         this.onErrorMap.delete(reciever);
         this.onCloseMap.delete(reciever);
-        reciever.ws.close();
+
+        try {
+            var ip = reciever.ws._socket.remoteAddress;
+            reciever.ws.close();
+
+            console.log("killing player, IP " + ip);
+            this.IPs.delete(ip);
+        } catch (e) {
+            //do nothing
+        }
     },
 
     sendEverybody: function(message) {
