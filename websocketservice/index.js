@@ -118,7 +118,7 @@ WebsocketService.prototype = {
             }
             
             if (!(message instanceof Object)) {
-                console.error("Invalid message " + message)
+                console.error("Invalid message " + message);
                 return;
             }
 
