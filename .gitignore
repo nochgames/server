@@ -2,3 +2,4 @@ node_modules
 *.log
 .idea
 junk
+server_require_example.js

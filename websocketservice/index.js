@@ -7,56 +7,57 @@
 var WebSocketServer = new require('ws');
 var Messages = require("../messages");
 
-var WebsocketService = function(gamemechanics) {
-    this.onCloseMap = new Map();
-    this.onMessageMap = new Map();
-    this.onErrorMap = new Map();
-    this.IPs = new Set();
+class WebsocketService {
+    
+    constructor(wsPort, gamemechanics) {
+        this.onCloseMap = new Map();
+        this.onMessageMap = new Map();
+        this.onErrorMap = new Map();
+        this.IPs = new Set();
 
-    this.webSocketServer = new WebSocketServer.Server({
-        port: 8085
-    });
+        this.webSocketServer = new WebSocketServer.Server({
+            port: wsPort
+        });
 
-    this.addressees = gamemechanics.context.players;
-    this.gamemechanics = gamemechanics;
+        this.addressees = gamemechanics.context.players;
+        this.gamemechanics = gamemechanics;
 
-    var self = this;
-    this.webSocketServer.on('connection', function(ws) {
-        if (self.IPs.has(ws._socket.remoteAddress)) {
-            ws.close();
-            return;
-        }
-        self.IPs.add(ws._socket.remoteAddress);
+        var self = this;
+        this.webSocketServer.on('connection', function(ws) {
+            if (self.IPs.has(ws._socket.remoteAddress)) {
+                ws.close();
+                return;
+            }
+            self.IPs.add(ws._socket.remoteAddress);
 
-        console.log(ws._socket.remoteAddress);
-        
-        if (!gamemechanics.isRunning) gamemechanics.run();
+            console.log(ws._socket.remoteAddress);
+
+            if (!gamemechanics.isRunning) gamemechanics.run();
 
 
-        var stub = gamemechanics.addPlayerStub(ws);
+            var stub = gamemechanics.addPlayerStub(ws);
 
-        self.updateEventListener(ws, 'message', stub, stub, self.onMessageMap,
-                                    self.createDoOnMessageStub(ws, stub));
-        self.updateEventListener(ws, 'error', stub, stub, self.onErrorMap,
-            self.createDeleteStub(stub));
-        self.updateEventListener(ws, 'close', stub, stub, self.onCloseMap,
-            self.createDeleteStub(stub));
-    });
+            self.updateEventListener(ws, 'message', stub, stub, self.onMessageMap,
+                self.createDoOnMessageStub(ws, stub));
+            self.updateEventListener(ws, 'error', stub, stub, self.onErrorMap,
+                self.createDeleteStub(stub));
+            self.updateEventListener(ws, 'close', stub, stub, self.onCloseMap,
+                self.createDeleteStub(stub));
+        });
 
-    console.log('The server is running');
-};
-
-WebsocketService.prototype = {
-    updateEventListener: function(socket, event, oldKey, newKey, map, callback) {
+        console.log('The server is running');
+    };
+    
+    updateEventListener(socket, event, oldKey, newKey, map, callback) {
         if (map.has(oldKey)) {
             socket.removeListener(event, map.get(oldKey));
             map.delete(oldKey);
         }
         map.set(newKey, callback);
         socket.on(event, callback);
-    },
+    }
 
-    sendToPlayer: function(message, reciever, event_name) {
+    sendToPlayer(message, reciever, event_name) {
         message = JSON.stringify(message);
         try {
             reciever.ws.send(message);
@@ -64,9 +65,9 @@ WebsocketService.prototype = {
             console.log('Unable to send ' + message +
                 ' to player. Player is\n' + reciever + '\n' + e);
         }
-    },
+    }
 
-    closeSocket: function(lastMessage, reciever) {
+    closeSocket(lastMessage, reciever) {
         this.sendToPlayer(lastMessage, reciever);
 
         reciever.ws.removeListener('message', this.onMessageMap.get(reciever));
@@ -85,25 +86,25 @@ WebsocketService.prototype = {
         } catch (e) {
             //do nothing
         }
-    },
+    }
 
-    sendEverybody: function(message) {
+    sendEverybody(message) {
         for (let i = 0; i < this.addressees.length; ++i) {
             if (this.addressees[i]) {
                 this.sendToPlayer(message, this.addressees[i]);
             }
         }
-    },
+    }
 
-    sendSpecificPlayers: function(message, addressesIndexes) {
+    sendSpecificPlayers(message, addressesIndexes) {
         for (let i = 0; i < addressesIndexes.length; ++i) {
             if (this.addressees[addressesIndexes[i]]) {
                 this.sendToPlayer(message, this.addressees[addressesIndexes[i]]);
             }
         }
-    },
+    }
 
-    createDoOnMessageStub: function(socket, stubCurrent) {
+    createDoOnMessageStub(socket, stubCurrent) {
         var self = this;
         var stub = stubCurrent;
         var ws = socket;
@@ -139,9 +140,9 @@ WebsocketService.prototype = {
                 stub.resolution = { width: message.x, height: message.y };
             }
         }
-    },
+    }
 
-    createDoOnMessage: function(playerCurrent) {
+    createDoOnMessage(playerCurrent) {
         var player = playerCurrent;
         var self = this;
         return function(message) {
@@ -178,9 +179,9 @@ WebsocketService.prototype = {
                         self.gamemechanics.context.engine);
             }
         }
-    },
+    }
 
-    createDeleteStub: function(stub) {
+    createDeleteStub(stub) {
         var self = this;
         var number = stub.number;
 
@@ -189,9 +190,9 @@ WebsocketService.prototype = {
             self.IPs.delete(this._socket.remoteAddress);
             delete self.gamemechanics.context.players[number];
         }
-    },
+    }
 
-    createDoOnError: function(playerCurrent) {
+    createDoOnError(playerCurrent) {
         var player = playerCurrent;
         var self = this;
         return function(event) {
@@ -204,9 +205,9 @@ WebsocketService.prototype = {
                 console.log('player lost ' + player.body.number);
             }
         }
-    },
+    }
 
-    createDoOnClose: function(playerCurrent) {
+    createDoOnClose(playerCurrent) {
         var player = playerCurrent;
         var self = this;
         return function(event) {
@@ -220,6 +221,6 @@ WebsocketService.prototype = {
             }
         }
     }
-};
+}
 
 module.exports = WebsocketService;

@@ -10,17 +10,36 @@ var GameMechanics = require("./gamemechanics");
 var WebsocketService = require("./websocketservice");
 
 var Emitter = require('events').EventEmitter;
-var playersEmitter = new Emitter();
 
-var gamemechanics = new GameMechanics(playersEmitter);
+class Server {
+    
+    constructor(wsPort) {
+        this.playersEmitter = new Emitter();
 
-var websocketService = new WebsocketService(gamemechanics);
+        this.gamemechanics = new GameMechanics(this.playersEmitter);
 
-gamemechanics.websocketservice =
-    gamemechanics.context.websocketservice = websocketService;
+        this.websocketService = new WebsocketService(wsPort, this.gamemechanics);
 
-gamemechanics.configureEmitter();
-gamemechanics.game_map.createFullBorder();
-gamemechanics.createGarbage(0.000008);
-gamemechanics.run();
-playersEmitter.on('no players', (event) => { gamemechanics.stop(); });
+        this.gamemechanics.websocketservice =
+            this.gamemechanics.context.websocketservice = this.websocketService;
+    }
+
+    run() {
+        this.gamemechanics.configureEmitter();
+        this.gamemechanics.game_map.createFullBorder();
+        this.gamemechanics.createGarbage(0.000008);
+        this.gamemechanics.run();
+        this.playersEmitter.on('no players', (event) => { this.gamemechanics.stop(); });
+    }
+    
+    getClientsNumber() {
+        return this.websocketService.webSocketServer.clients.length;
+    }
+}
+
+if (module.parent) {
+    module.exports = Server;
+} else {
+    var server = new Server(8085);
+    server.run();
+}
