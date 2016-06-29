@@ -16,7 +16,7 @@
 ### Quickstart
 
 ```bash
-git clone git@github.com:nochgames/server.git
+git clone https://github.com/nochgames/server.git
 cd server
 npm install
 node server.js
