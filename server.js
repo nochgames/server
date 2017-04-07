@@ -11,6 +11,8 @@ var WebsocketService = require("./websocketservice");
 
 var Emitter = require('events').EventEmitter;
 
+var config = require('config-node')();
+
 class Server {
     
     constructor(wsPort) {
@@ -40,6 +42,6 @@ class Server {
 if (module.parent) {
     module.exports = Server;
 } else {
-    var server = new Server(8085);
+    var server = new Server(config.server.port);
     server.run();
 }
