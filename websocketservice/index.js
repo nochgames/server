@@ -45,7 +45,7 @@ class WebsocketService {
                 self.createDeleteStub(stub));
         });
 
-        console.log('The server is running');
+        console.log('The server is running on port ' + wsPort);
     };
     
     updateEventListener(socket, event, oldKey, newKey, map, callback) {
