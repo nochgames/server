@@ -170,20 +170,16 @@ class GameMechanics {
     }
 
     subscribeToSleepEnd(Body) {
-        var self = this;
-        Matter.Events.on(Body, 'sleepEnd', function(event) {
-            var body = this;
-            self.context.garbageActive.push(body);
+        Matter.Events.on(Body, 'sleepEnd', event => {
+            this.context.garbageActive.push(Body);
             //console.log(body.id + ' woke');
         });
         //console.log("body with id " + Body.id + " is subscribed to sleep end.");
     }
 
     subscribeToSleepStart(Body) {
-        var self = this;
-        Matter.Events.on(Body, 'sleepStart', function(event) {
-            var body = this;
-            Util_tools.deleteFromArray(self.context.garbageActive, body);
+        Matter.Events.on(Body, 'sleepStart', event => {
+            Util_tools.deleteFromArray(this.context.garbageActive, Body);
             //console.log(body.id + ' slept');
         });
         //console.log("body with id " + Body.id + " is subscribed to sleep start.");
@@ -320,13 +316,13 @@ class GameMechanics {
     }
 
     updateScoreBoard() {
-        var scoreBoard = this.context.players.filter(function(player) {
+        var scoreBoard = this.context.players.filter(player => {
             if (player && !player.isStub) {
                 return player;
             }
-        }).sort(function(playerA, playerB) {
+        }).sort((playerA, playerB) => {
             return playerB.kills - playerA.kills;
-        }).slice(0, 7).map(function(player) {
+        }).slice(0, 7).map(player => {
             return { name: player.name, kills: player.kills }
         });
 
@@ -364,75 +360,74 @@ class GameMechanics {
     }
 
     configureEmitter() {
-        var self = this;
 
-        this.context.playersEmitter.on('particle appeared', function(event) {
-            self.checkGarbageVisibility();
+        this.context.playersEmitter.on('particle appeared', event => {
+            this.checkGarbageVisibility();
         });
 
-        this.context.playersEmitter.on('shot fired', function(event) {
-            self.context.websocketservice.sendEverybody(Messages.playerShot(event.shid));
+        this.context.playersEmitter.on('shot fired', event => {
+            this.context.websocketservice.sendEverybody(Messages.playerShot(event.shid));
         });
 
-        this.context.playersEmitter.on('murder', function(event) {
-            self.updateScoreBoard();
+        this.context.playersEmitter.on('murder', event => {
+            this.updateScoreBoard();
         });
 
-        this.context.playersEmitter.on('player died', function(event) {
-            var playerId = self.context.players.indexOf(event.player);
-            self.context.websocketservice.sendEverybody(Messages.deletePlayer(
+        this.context.playersEmitter.on('player died', event => {
+            var playerId = this.context.players.indexOf(event.player);
+            this.context.websocketservice.sendEverybody(Messages.deletePlayer(
                                                         event.player.body.id));
-            var objects = self.context.garbage.concat(self.game_map.border)
-                            .concat(self.context.freeProtons);
+            var objects = this.context.garbage.concat(this.game_map.border)
+                            .concat(this.context.freeProtons);
             objects = objects.filter(obj => {
                 return obj;
             });
             for (let i = 0; i < objects.length; ++i) {
                 Util_tools.deleteFromArray(objects[i].body.playersWhoSee, playerId);
             }
-            self.updateScoreBoard();
+            this.updateScoreBoard();
         });
 
-        self.context.playersEmitter.on('particle died', function(event) {
-            self.context.websocketservice.sendSpecificPlayers(
+        this.context.playersEmitter.on('particle died', event => {
+            this.context.websocketservice.sendSpecificPlayers(
                 Messages.deleteParticle(event.id), event.playersWhoSee);
         });
 
-        this.context.playersEmitter.on('element changed', function(event) {
+        this.context.playersEmitter.on('element changed', event => {
             if (event.body.inGameType == 'player') {
-                self.context.websocketservice.sendEverybody(
+                this.context.websocketservice.sendEverybody(
                     Messages.changeElementGarbage(
                         event.body.id,
                         event.body.element));
 
             } else {
-                self.context.websocketservice
+                this.context.websocketservice
                     .sendSpecificPlayers(Messages.changeElementGarbage(
                                         event.body.id,
                                         event.body.element),
                                         event.body.playersWhoSee);
             }
 
-            self.context.chemistry.updateGarbageConnectingPossibility();
+            this.context.chemistry.updateGarbageConnectingPossibility();
         });
 
-        self.context.playersEmitter.on('bond created', function(event) {
+        this.context.playersEmitter.on('bond created', event => {
 
             /*if (event.bc1.inGameType == 'garbage')
-                self.synchronizePlayersWhoSee(event.bc1, event.bc2.playersWhoSee);
+                this.synchronizePlayersWhoSee(event.bc1, event.bc2.playersWhoSee);
             if (event.bc2.inGameType == 'garbage')
-                self.synchronizePlayersWhoSee(event.bc2, event.bc1.playersWhoSee);*/
+                this.synchronizePlayersWhoSee(event.bc2, event.bc1.playersWhoSee);*/
             var playersWhoSee = event.bc1.playersWhoSee.length > event.bc2.playersWhoSee.length ?
                 event.bc1.playersWhoSee : event.bc2.playersWhoSee;
-            self.context.websocketservice.sendSpecificPlayers(
+            this.context.websocketservice.sendSpecificPlayers(
                 Messages.newBondOnScreen(event.bc1.id, event.bc2.id),
                 playersWhoSee);
 
-            self.addPlayerToUpdateConnectionPossibility(self.context.players.indexOf(event.p))
+            this.addPlayerToUpdateConnectionPossibility(this.context.players.indexOf(event.p))
         });
 
 
-        self.context.playersEmitter.on('decoupled', function(event) {
+        this.context.playersEmitter.on('decoupled', event => {
 
             let playersWhoSee = event.decoupledBodyA.playersWhoSee.concat();
             for (let i = 0; i < event.decoupledBodyB.playersWhoSee.length; ++i) {
@@ -441,41 +436,41 @@ class GameMechanics {
                 }
             }
 
-            self.context.websocketservice.sendSpecificPlayers(
+            this.context.websocketservice.sendSpecificPlayers(
                 Messages.deleteBond(event.decoupledBodyA.id, event.decoupledBodyB.id),
                 playersWhoSee);
 
-            /*self.context.websocketservice.sendSpecificPlayers(
+            /*this.context.websocketservice.sendSpecificPlayers(
                 Messages.deleteBond(event.decoupledBodyA.id, event.decoupledBodyB.id),
                 event.decoupledBodyB.playersWhoSee);*/
 
-            self.addPlayerToUpdateConnectionPossibility(self.context.players.indexOf(event.p))
+            this.addPlayerToUpdateConnectionPossibility(this.context.players.indexOf(event.p))
         });
 
 
-        self.context.playersEmitter.on('became playerPart', function(event) {
+        this.context.playersEmitter.on('became playerPart', event => {
 
-        self.context.websocketservice.sendSpecificPlayers(
+        this.context.websocketservice.sendSpecificPlayers(
             Messages.particleBecamePlayerPart(event.garbageBody.id),
             event.garbageBody.playersWhoSee);
         });
 
-        self.context.playersEmitter.on('became garbage', function(event) {
+        this.context.playersEmitter.on('became garbage', event => {
 
             let playersWhoSee = event.garbageBody.playersWhoSee;
             for (let i = 0; i < playersWhoSee.length; ++i) {
-                if (self.context.players[playersWhoSee[i]]) {
-                    self.context.websocketservice.sendToPlayer(
+                if (this.context.players[playersWhoSee[i]]) {
+                    this.context.websocketservice.sendToPlayer(
                         Messages.particleBecameGarbage(event.garbageBody.id,
-                            self.context.chemistry.getColorForPlayer(
-                                self.context.getMainObject(event.garbageBody), playersWhoSee[i])),
-                        self.context.players[playersWhoSee[i]]);
+                            this.context.chemistry.getColorForPlayer(
+                                this.context.getMainObject(event.garbageBody), playersWhoSee[i])),
+                        this.context.players[playersWhoSee[i]]);
                 }
             }
-            /*self.context.websocketservice.sendSpecificPlayers(
+            /*this.context.websocketservice.sendSpecificPlayers(
                 { 'bg': event.garbageBody.id, 'p': Util_tools.ceilPosition(event.garbageBody.position) },
                 event.garbageBody.playersWhoSee);*/
-        });
+        })
     }
 
     addPlayerToUpdateConnectionPossibility(index) {
@@ -550,24 +545,23 @@ class GameMechanics {
     }
 
     run() {
-        var self = this;
 
-        this.intervals.push(setInterval(function() {
-            if (!self.context.players.filter(player =>
+        this.intervals.push(setInterval(() => {
+            if (!this.context.players.filter(player =>
                 { return player; }).length) {
-                self.checkGarbageVisibility();
-                self.context.playersEmitter.emit('no players');
+                this.checkGarbageVisibility();
+                this.context.playersEmitter.emit('no players');
             }
 
-            Matter.Engine.update(self.context.engine, self.context.engine.timing.delta);
-            self.recyclebin.empty();
-            self.updateActiveGarbage();
-            self.updatePlayersStats();
+            Matter.Engine.update(this.context.engine, this.context.engine.timing.delta);
+            this.recyclebin.empty();
+            this.updateActiveGarbage();
+            this.updatePlayersStats();
         }, 1000 / 60));
 
-        this.intervals.push(setInterval(function() {
-            self.checkGarbageVisibility();
-            self.updateConnectionPossibilityGeneral();
+        this.intervals.push(setInterval(() => {
+            this.checkGarbageVisibility();
+            this.updateConnectionPossibilityGeneral();
         }, 1000));
 
         this.logMemoryUsage();
@@ -585,9 +579,9 @@ class GameMechanics {
     }
 
     logGA() {
-        var self = this;
-        this.intervals.push(setInterval(function() {
-            console.log('ga: ' + self.context.garbageActive.map(ga =>
+
+        this.intervals.push(setInterval(() => {
+            console.log('ga: ' + this.context.garbageActive.map(ga =>
                     { return ga.id }
                 ).sort());
         }, 400));
@@ -595,7 +589,7 @@ class GameMechanics {
 
     logPlayerNumbers() {
         this.intervals.push(setInterval(() => {
-            console.log("players: " + this.context.players.map(function(player) {
+            console.log("players: " + this.context.players.map(player => {
                     if (player) {
                         return player.body.playerNumber;
                     } else {
@@ -610,7 +604,7 @@ class GameMechanics {
         let max = 0;
         let start = new Date().getTime();
 
-        this.intervals.push(setInterval(function() {
+        this.intervals.push(setInterval(() => {
             let now = new Date().getTime();
             let secondsPassed = (now - start) / 1000;
 
