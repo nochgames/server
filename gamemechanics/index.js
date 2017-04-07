@@ -22,31 +22,32 @@ var Engine = Matter.Engine,
     Body = Matter.Body,
     Composite = Matter.Composite;
 
-var GameMechanics = function(playersEmitter) {
-    this.websocketservice = {};
-    this.intervals = [];
+class GameMechanics {
 
-    this.playersToUpdateConnectionPossibility = [];
+    constructor(playersEmitter) {
+        this.websocketservice = {};
+        this.intervals = [];
 
-    this.recyclebin = new RecycleBin();
-    var engine = Engine.create();
+        this.playersToUpdateConnectionPossibility = [];
 
-    engine.world.gravity.y = 0;
-    engine.enableSleeping = true;
+        this.recyclebin = new RecycleBin();
+        var engine = Engine.create();
 
-    this.isRunning = false;
+        engine.world.gravity.y = 0;
+        engine.enableSleeping = true;
 
-    this.game_map = new GameMap(engine);
+        this.isRunning = false;
 
-    this.context = new Context(engine, playersEmitter, this.recyclebin, this.websocketservice);
-    new CollisionHandler(this.context);
-    this.recyclebin.context = this.context;
+        this.game_map = new GameMap(engine);
 
-    this.context.chemistry = new Chemistry(this.context);
-};
+        this.context = new Context(engine, playersEmitter, this.recyclebin, this.websocketservice);
+        new CollisionHandler(this.context);
+        this.recyclebin.context = this.context;
 
-GameMechanics.prototype = {
-    createGarbage: function(garbageDensity) {
+        this.context.chemistry = new Chemistry(this.context);
+    }
+
+    createGarbage(garbageDensity) {
 
         var diameter = params.getParameter("gameDiameter");
 
@@ -54,9 +55,9 @@ GameMechanics.prototype = {
 
         //this.createRandomGarbage(quantity);
         this.createPortionsOfGarbage(quantity);
-    },
+    }
 
-    createRandomGarbage: function(quantity) {
+    createRandomGarbage(quantity) {
         var diameter = params.getParameter("gameDiameter");
 
         for (let j = 0; j < quantity; ++j) {
@@ -70,9 +71,9 @@ GameMechanics.prototype = {
 
             this.createSingleGarbage(element, position, j);
         }
-    },
+    }
 
-    createPortionsOfGarbage: function(quantity) {
+    createPortionsOfGarbage(quantity) {
         var diameter = params.getParameter("gameDiameter");
         let i = 0;
         for (let key in portions) {
@@ -90,9 +91,9 @@ GameMechanics.prototype = {
                 ++i;
             }
         }
-    },
+    }
 
-    createSingleGarbage: function(element, position, number) {
+    createSingleGarbage(element, position, number) {
         var singleGarbage = new Garbage(position, this.context.engine, element,
             this.context.playersEmitter, this.context.chemistry);
 
@@ -101,18 +102,18 @@ GameMechanics.prototype = {
         singleGarbage.body.number = number;
         this.subscribeToSleepEnd(singleGarbage.body);
         this.subscribeToSleepStart(singleGarbage.body);
-    },
+    }
 
     getRandomElement() {
         return elements[Math.ceil(Math.random() * 10 - 1)];
-    },
+    }
 
     getCertainPossibilityElement() {
         var key = Math.random() * 100;
         //TODO finish this function
-    },
+    }
 
-    addPlayerStub: function(ws) {
+    addPlayerStub(ws) {
         //TODO: change test parameters to normal
         var pos = this.game_map.getRandomPositionInside(0, 850);
         var stub = {
@@ -131,9 +132,9 @@ GameMechanics.prototype = {
         this.context.websocketservice.sendToPlayer(Messages.greetingStub(pos), stub);
         this.notifyStubAboutPlayers(stub);
         return stub;
-    },
+    }
 
-    addPlayer: function(ws, position, index, resolution, name, color) {
+    addPlayer(ws, position, index, resolution, name, color) {
         var player = new Player(ws, name, position, this.context.engine,
                                 "C", this.context.playersEmitter,
                                 this.websocketservice, this.context.chemistry);
@@ -166,9 +167,9 @@ GameMechanics.prototype = {
         this.updateScoreBoard();
 
         return player;
-    },
+    }
 
-    subscribeToSleepEnd: function(Body) {
+    subscribeToSleepEnd(Body) {
         var self = this;
         Matter.Events.on(Body, 'sleepEnd', function(event) {
             var body = this;
@@ -176,9 +177,9 @@ GameMechanics.prototype = {
             //console.log(body.id + ' woke');
         });
         //console.log("body with id " + Body.id + " is subscribed to sleep end.");
-    },
+    }
 
-    subscribeToSleepStart: function(Body) {
+    subscribeToSleepStart(Body) {
         var self = this;
         Matter.Events.on(Body, 'sleepStart', function(event) {
             var body = this;
@@ -186,9 +187,9 @@ GameMechanics.prototype = {
             //console.log(body.id + ' slept');
         });
         //console.log("body with id " + Body.id + " is subscribed to sleep start.");
-    },
+    }
 
-    notifyStubAboutPlayers: function(stub) {
+    notifyStubAboutPlayers(stub) {
         for (let i = 0; i < this.context.players.length; ++i) {
             if (!this.context.players[i] || this.context.players[i].isStub ||
                 i == stub.body.number) continue;
@@ -200,9 +201,9 @@ GameMechanics.prototype = {
                 ),
                 stub);
         }
-    },
+    }
 
-    notifyEverybodyAboutNewPlayer: function(player) {
+    notifyEverybodyAboutNewPlayer(player) {
         for (let i = 0; i < this.context.players.length; ++i) {
             if (!this.context.players[i]||
                 i == player.body.number) continue;
@@ -215,10 +216,10 @@ GameMechanics.prototype = {
                 ),
                 this.context.players[i]);
         }
-    },
+    }
 
     //TODO: delete notifyAndInformNewPlayer after tests
-    notifyAndInformNewPlayer: function(player) {
+    notifyAndInformNewPlayer(player) {
         for (let i = 0; i < this.context.players.length; ++i) {
             if (!(this.context.players[i] &&
                 player.body.number != i)) continue;
@@ -239,9 +240,9 @@ GameMechanics.prototype = {
                 ),
                 player);
         }
-    },
+    }
 
-    createMessage: function() {
+    createMessage() {
 
         var response = {};
 
@@ -259,17 +260,17 @@ GameMechanics.prototype = {
         if (playersWhoMove.length) response["players"] = playersWhoMove;
 
         return response;
-    },
+    }
 
-    updatePlayersStats: function() {
+    updatePlayersStats() {
         for (let i = 0; i < this.context.players.length; ++i) {
             if (this.context.players[i] && !this.context.players[i].isStub) {
                 this.context.players[i].updatePreviousPosition();
             }
         }
-    },
+    }
 
-    sendAllBonds: function(object, playerNumber) {
+    sendAllBonds(object, playerNumber) {
         for (let i = 0; i < object.body.chemicalChildren.length; ++i) {
             if (!object.body.chemicalChildren[i]) continue;
             this.context.websocketservice.sendToPlayer(
@@ -281,9 +282,9 @@ GameMechanics.prototype = {
                 Messages.newBondOnScreen(object.body.id, object.body.chemicalParent.id),
                 this.context.players[playerNumber]);
         }
-    },
+    }
 
-    addPlayerWhoSee: function(object, playerNumber) {
+    addPlayerWhoSee(object, playerNumber) {
         if (object.body.playersWhoSee.indexOf(playerNumber) != -1) return false;
         object.body.playersWhoSee.push(playerNumber);
 
@@ -316,9 +317,9 @@ GameMechanics.prototype = {
 
         this.context.websocketservice.sendToPlayer(message, this.context.players[playerNumber]);
         return true;
-    },
+    }
 
-    updateScoreBoard: function() {
+    updateScoreBoard() {
         var scoreBoard = this.context.players.filter(function(player) {
             if (player && !player.isStub) {
                 return player;
@@ -330,9 +331,9 @@ GameMechanics.prototype = {
         });
 
         this.context.websocketservice.sendEverybody(Messages.scoreBoard(scoreBoard));
-    },
+    }
 
-    checkGarbageVisibility: function() {
+    checkGarbageVisibility() {
         var objects = this.context.garbage.concat(this.game_map.border)
             .concat(this.context.freeProtons);
         objects = objects.filter(obj => {
@@ -360,9 +361,9 @@ GameMechanics.prototype = {
                 }
             }
         }
-    },
+    }
 
-    configureEmitter: function() {
+    configureEmitter() {
         var self = this;
 
         this.context.playersEmitter.on('particle appeared', function(event) {
@@ -475,13 +476,13 @@ GameMechanics.prototype = {
                 { 'bg': event.garbageBody.id, 'p': Util_tools.ceilPosition(event.garbageBody.position) },
                 event.garbageBody.playersWhoSee);*/
         });
-    },
+    }
 
     addPlayerToUpdateConnectionPossibility(index) {
         if (this.playersToUpdateConnectionPossibility.indexOf(index) == -1) {
             this.playersToUpdateConnectionPossibility.push(index);
         }
-    },
+    }
 
     updateConnectionPossibilityGeneral() {
         for (let i = 0; i < this.playersToUpdateConnectionPossibility.length; ++i) {
@@ -493,17 +494,17 @@ GameMechanics.prototype = {
         }
 
         this.playersToUpdateConnectionPossibility = [];
-    },
+    }
 
-    synchronizePlayersWhoSee: function(target, mainArray) {
+    synchronizePlayersWhoSee(target, mainArray) {
         for (let i = 0; i < mainArray.length; ++i) {
             if (target.playersWhoSee.indexOf(mainArray[i]) == -1) {
                 this.addPlayerWhoSee(this.context.getMainObject(target), mainArray[i]);
             }
         }
-    },
+    }
 
-    updateActiveGarbage: function() {
+    updateActiveGarbage() {
 
         var particlesActive = this.context.garbageActive
             .concat(this.context.freeProtons.filter(particle => {
@@ -536,9 +537,9 @@ GameMechanics.prototype = {
                 this.context.websocketservice.sendToPlayer(
                     message, this.context.players[i]);
         }
-    },
+    }
 
-    sendToAllPlayers: function() {
+    sendToAllPlayers() {
         for (let j = 0; j < this.context.players.length; ++j) {
             if (this.context.players[j]) {
                 var message = this.createMessage(j);
@@ -546,9 +547,9 @@ GameMechanics.prototype = {
                     .sendToPlayer(message, this.context.players[j]);
             }
         }
-    },
+    }
 
-    run: function() {
+    run() {
         var self = this;
 
         this.intervals.push(setInterval(function() {
@@ -573,29 +574,28 @@ GameMechanics.prototype = {
 
         this.isRunning = true;
         console.log('game loop started');
-    },
+    }
 
-    stop: function() {
+    stop() {
         for (let i = 0; i < this.intervals.length; ++i) {
           clearInterval(this.intervals[i]);
         }
         this.isRunning = false;
         console.log('game loop stopped');
-    },
+    }
 
-    logGA: function() {
+    logGA() {
         var self = this;
         this.intervals.push(setInterval(function() {
             console.log('ga: ' + self.context.garbageActive.map(ga =>
                     { return ga.id }
                 ).sort());
         }, 400));
-    },
+    }
 
-    logPlayerNumbers: function() {
-        var self = this;
-        this.intervals.push(setInterval(function() {
-            console.log("players: " + self.context.players.map(function(player) {
+    logPlayerNumbers() {
+        this.intervals.push(setInterval(() => {
+            console.log("players: " + this.context.players.map(function(player) {
                     if (player) {
                         return player.body.playerNumber;
                     } else {
@@ -603,11 +603,11 @@ GameMechanics.prototype = {
                     }
                 }));
         }, 200));
-    },
+    }
 
-    logMemoryUsage: function() {
-        var min = Infinity;
-        var max = 0;
+    logMemoryUsage() {
+        let min = Infinity;
+        let max = 0;
         let start = new Date().getTime();
 
         this.intervals.push(setInterval(function() {
@@ -625,6 +625,6 @@ GameMechanics.prototype = {
                 + min + ', max: ' + max + ')');
         }, 30000));
     }
-};
+}
 
 module.exports = GameMechanics;
