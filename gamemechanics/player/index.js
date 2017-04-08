@@ -19,13 +19,16 @@ var Engine = Matter.Engine,
     Vector = Matter.Vector;
 
 class Player extends ActiveElement {
-    constructor(ws, name, position, engine, elem,
-                  emitter, websocketservice, chemistry) {
+    constructor(ws, name, position, engine, elem, emitter,
+                websocketservice, chemistry, color, number) {
 
         super(websocketservice, position, engine,
-                elem, emitter, chemistry);
+                elem, emitter, chemistry, color);
 
         this.name = name;
+        this.isBot = false;
+
+        this.body.number = this.body.playerNumber = number;
 
         this.ws = ws;
 
@@ -38,6 +41,18 @@ class Player extends ActiveElement {
     setResolution(res) {
         this.resolution.width = res["x"];
         this.resolution.height = res["y"];
+    }
+
+    applyVelocityGlobal(mx, my) {
+        mx = mx - this.getLocalPosition().x;
+        my = my - this.getLocalPosition().y;
+
+        this.applyVelocity(mx, my);
+    }
+
+    getLocalPosition() {
+        return { x: this.resolution.width / 2,
+            y: this.resolution.height / 2 };
     }
 
     lose(engine, playersArray, garbageArray, newPlayerBody) {
@@ -81,6 +96,10 @@ class Player extends ActiveElement {
         this.coefficientTimeOut = setTimeout(function() {
             self.body.coefficient = coefficient;
         }, 2000);
+    }
+
+    update() {
+        super.update();
     }
 }
 

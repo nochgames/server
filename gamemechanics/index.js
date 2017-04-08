@@ -1,6 +1,5 @@
 'use strict';
 
-var Geometry = require("geometry_noch");
 var Messages = require("../messages");
 var Util_tools = require("../util_tools");
 var params = require("db_noch");
@@ -12,9 +11,11 @@ var RecycleBin = require('./recycleBin');
 var Context = require('./context');
 var Garbage = require("./garbage");
 var Player = require('./player');
+var Bot = require('./bot');
 var GameMap = require('./game_map');
 var CollisionHandler = require('./collision_handler');
 var Chemistry = require('./chemistry/chemistry_advanced');
+var config = require('config-node');
 
 var Engine = Matter.Engine,
     World = Matter.World,
@@ -49,42 +50,46 @@ class GameMechanics {
 
     createGarbage(garbageDensity) {
 
-        var diameter = params.getParameter("gameDiameter");
+        var diameter = this.game_map.radius * 2;
 
-        var quantity = garbageDensity * diameter * diameter / 4;
+        var quantity = garbageDensity * Math.PI * diameter * diameter / 4;
+
+        console.log("creating " + quantity + " elements");
 
         //this.createRandomGarbage(quantity);
         this.createPortionsOfGarbage(quantity);
     }
 
     createRandomGarbage(quantity) {
-        var diameter = params.getParameter("gameDiameter");
 
         for (let j = 0; j < quantity; ++j) {
-            var element = this.getRandomElement();
+            let element = this.getRandomElement();
 
-            var OFFSET_BORDER = 40;
-            var OFFSET_PLAYER = 1000;
-            var position = this.game_map
-                .getRandomPositionInside(OFFSET_PLAYER,
-                                        diameter / 2 - OFFSET_BORDER);
+            let position = this.game_map
+                .getRandomPositionOuter();
 
             this.createSingleGarbage(element, position, j);
         }
     }
 
+    getRandomColor() {
+        const letters = '0123456789ABCDEF';
+        let color = '#';
+        for (let i = 0; i < 6; i++ ) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    }
+
     createPortionsOfGarbage(quantity) {
-        var diameter = params.getParameter("gameDiameter");
         let i = 0;
         for (let key in portions) {
             let elementQuantity = quantity / 100 * portions[key];
 
             for (let j = 0; j < elementQuantity; ++j) {
-                var OFFSET_BORDER = 40;
-                var OFFSET_PLAYER = 1000;
+
                 var position = this.game_map
-                    .getRandomPositionInside(OFFSET_PLAYER,
-                        diameter / 2 - OFFSET_BORDER);
+                    .getRandomPositionOuter();
 
 
                 this.createSingleGarbage(key, position, i);
@@ -98,10 +103,9 @@ class GameMechanics {
             this.context.playersEmitter, this.context.chemistry);
 
         this.context.garbage.push(singleGarbage);
-        this.context.garbageActive.push(singleGarbage.body);
         singleGarbage.body.number = number;
-        this.subscribeToSleepEnd(singleGarbage.body);
-        this.subscribeToSleepStart(singleGarbage.body);
+
+        this.processNewBody(singleGarbage.body);
     }
 
     getRandomElement() {
@@ -114,8 +118,13 @@ class GameMechanics {
     }
 
     addPlayerStub(ws) {
+
+        if (!this.context.players.filter(player => { return player; }).length) {
+            this.createBots();
+        }
+
         //TODO: change test parameters to normal
-        var pos = this.game_map.getRandomPositionInside(0, 850);
+        var pos = this.game_map.getRandomPositionInner();
         var stub = {
             body: { position: pos, coefficient: 0.2 },
             ws: ws,
@@ -129,21 +138,24 @@ class GameMechanics {
             stub
         );
 
-        this.context.websocketservice.sendToPlayer(Messages.greetingStub(pos), stub);
+        this.context.websocketservice.sendToPlayer(
+            Messages.greetingStub(pos, this.game_map.borderPartLength,
+                                this.game_map.borderPartHeight), stub);
         this.notifyStubAboutPlayers(stub);
+
+        this.updateScoreBoard();
         return stub;
     }
 
     addPlayer(ws, position, index, resolution, name, color) {
-        var player = new Player(ws, name, position, this.context.engine,
-                                "C", this.context.playersEmitter,
-                                this.websocketservice, this.context.chemistry);
+        var player = new Player(
+            ws, name, position, this.context.engine,
+            config.game.defaultElement,
+            this.context.playersEmitter, this.websocketservice,
+            this.context.chemistry, color, index);
 
         this.context.players[index] = player;
         player.setResolution({ x: resolution.width, y: resolution.height });
-
-        player.body.number = player.body.playerNumber = index;
-        player.color = color;
 
         this.websocketservice
             .sendToPlayer(Messages.greeting(
@@ -159,14 +171,48 @@ class GameMechanics {
 
         //Most player bodies never sleep, so they never throw
         //sleepEnd event so they can't be in garbageActive array
-        this.context.garbageActive.push(player.body);
-        this.subscribeToSleepStart(player.body);
-        this.subscribeToSleepEnd(player.body);
+        this.processNewBody(player.body);
 
         this.context.chemistry.updateGarbageConnectingPossibilityForPlayer(index);
         this.updateScoreBoard();
 
         return player;
+    }
+
+    addBot() {
+
+        let bot = new Bot(
+            this.game_map.getRandomPositionInner(),
+            this.context.engine, config.game.defaultElement,
+            this.context.playersEmitter, this.context.websocketservice,
+            this.context.chemistry, this.getRandomColor());
+
+        bot.setNumber(this.context.addToArray(
+            this.context.players,
+            bot
+        ));
+
+        bot.isReady = true;
+
+        this.notifyEverybodyAboutNewPlayer(bot);
+
+        this.processNewBody(bot.body);
+
+        this.updateScoreBoard();
+
+        return bot;
+    }
+
+    createBots() {
+        for (let i = 0; i < config.game.botsQuantity; ++i) {
+            this.addBot();
+        }
+    }
+
+    processNewBody(body) {
+        this.context.garbageActive.push(body);
+        this.subscribeToSleepStart(body);
+        this.subscribeToSleepEnd(body);
     }
 
     subscribeToSleepEnd(Body) {
@@ -258,10 +304,10 @@ class GameMechanics {
         return response;
     }
 
-    updatePlayersStats() {
+    updatePlayers() {
         for (let i = 0; i < this.context.players.length; ++i) {
             if (this.context.players[i] && !this.context.players[i].isStub) {
-                this.context.players[i].updatePreviousPosition();
+                this.context.players[i].update();
             }
         }
     }
@@ -315,11 +361,11 @@ class GameMechanics {
         return true;
     }
 
-    updateScoreBoard() {
+    updateScoreBoard(deadId) {
+        deadId = (typeof deadId !== 'undefined') ?  deadId : -1;
+
         var scoreBoard = this.context.players.filter(player => {
-            if (player && !player.isStub) {
-                return player;
-            }
+            return player && !player.isStub && player.body.number != deadId;
         }).sort((playerA, playerB) => {
             return playerB.kills - playerA.kills;
         }).slice(0, 7).map(player => {
@@ -370,7 +416,7 @@ class GameMechanics {
         });
 
         this.context.playersEmitter.on('murder', event => {
-            this.updateScoreBoard();
+
         });
 
         this.context.playersEmitter.on('player died', event => {
@@ -385,7 +431,7 @@ class GameMechanics {
             for (let i = 0; i < objects.length; ++i) {
                 Util_tools.deleteFromArray(objects[i].body.playersWhoSee, playerId);
             }
-            this.updateScoreBoard();
+            this.updateScoreBoard(playerId);
         });
 
         this.context.playersEmitter.on('particle died', event => {
@@ -417,13 +463,16 @@ class GameMechanics {
                 this.synchronizePlayersWhoSee(event.bc1, event.bc2.playersWhoSee);
             if (event.bc2.inGameType == 'garbage')
                 this.synchronizePlayersWhoSee(event.bc2, event.bc1.playersWhoSee);*/
-            var playersWhoSee = event.bc1.playersWhoSee.length > event.bc2.playersWhoSee.length ?
+            let playersWhoSee = event.bc1.playersWhoSee.length > event.bc2.playersWhoSee.length ?
                 event.bc1.playersWhoSee : event.bc2.playersWhoSee;
             this.context.websocketservice.sendSpecificPlayers(
                 Messages.newBondOnScreen(event.bc1.id, event.bc2.id),
                 playersWhoSee);
 
-            this.addPlayerToUpdateConnectionPossibility(this.context.players.indexOf(event.p))
+            let player = this.context.players.indexOf(event.p);
+
+            if (!player.isBot)
+                this.addPlayerToUpdateConnectionPossibility(player)
         });
 
 
@@ -444,7 +493,10 @@ class GameMechanics {
                 Messages.deleteBond(event.decoupledBodyA.id, event.decoupledBodyB.id),
                 event.decoupledBodyB.playersWhoSee);*/
 
-            this.addPlayerToUpdateConnectionPossibility(this.context.players.indexOf(event.p))
+            let player = this.context.players.indexOf(event.p);
+
+            if (!player.isBot)
+                this.addPlayerToUpdateConnectionPossibility(player)
         });
 
 
@@ -548,7 +600,7 @@ class GameMechanics {
 
         this.intervals.push(setInterval(() => {
             if (!this.context.players.filter(player =>
-                { return player; }).length) {
+                { return player && !player.isBot; }).length) {
                 this.checkGarbageVisibility();
                 this.context.playersEmitter.emit('no players');
             }
@@ -556,8 +608,8 @@ class GameMechanics {
             Matter.Engine.update(this.context.engine, this.context.engine.timing.delta);
             this.recyclebin.empty();
             this.updateActiveGarbage();
-            this.updatePlayersStats();
-        }, 1000 / 60));
+            this.updatePlayers();
+        }, 1000 / config.game.updatesPerSec));
 
         this.intervals.push(setInterval(() => {
             this.checkGarbageVisibility();

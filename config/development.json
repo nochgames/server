@@ -3,6 +3,30 @@
     "port": "8085"
   },
   "game": {
+    "botsQuantity": 5,
 
+    "defaultElement": "C",
+
+    "garbageDensity": 0.0000012,
+
+    "map": {
+      "gameDiameter": 4000,
+
+      "playerAreaPortion": 0.4,
+
+      "borderPartLength": 100,
+      "borderPartHeight": 120,
+
+      "borderOffsetPortion": 0.005,
+
+      "deadlyBorder": false
+    },
+
+    "simpleBot": {
+      "sameDirSecMin": 1,
+      "sameDirSecMax": 2
+    },
+
+    "updatesPerSec": 60
   }
 }

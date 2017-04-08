@@ -10,19 +10,28 @@ var Engine = Matter.Engine,
     Bodies = Matter.Bodies,
     Body = Matter.Body,
     Composite = Matter.Composite;
-var params = require("db_noch");
-params.connect();
 
-var Map = function(engine) {
-    this.engine = engine;
-    this.border = [];
-    this.radius = params.getParameter("gameDiameter") / 2;
-};
+var config = require('config-node');
 
-Map.prototype = {
-    createFullBorder: function() {
-        const BORDER_PART_LENGTH = params.getParameter("borderPartLength");
-        const BORDER_PART_HEIGHT = params.getParameter("borderPartHeight");
+class Map {
+    constructor(engine) {
+        this.engine = engine;
+        this.border = [];
+        this.radius = config.game.map.gameDiameter / 2;
+
+        this.radius = config.game.map.gameDiameter / 2;
+
+        this.offsetBorder = this.radius * config.game.map.borderOffsetPortion;
+        this.playerAreaRadius = this.radius * config.game.map.playerAreaPortion;
+
+        this.borderPartLength = config.game.map.borderPartLength;
+        this.borderPartHeight = config.game.map.borderPartHeight;
+    }
+
+
+    createFullBorder() {
+        const BORDER_PART_LENGTH = this.borderPartLength;
+        const BORDER_PART_HEIGHT = this.borderPartHeight;
 
         const center = { x: this.radius, y: this.radius };
 
@@ -43,9 +52,9 @@ Map.prototype = {
             World.addBody(this.engine.world, borderBody);
             this.border.push(borderPart);
         }
-    },
+    }
 
-    getRandomPositionInside: function(areaRadiusMin, areaRadiusMax) {
+    getRandomPositionInside(areaRadiusMin, areaRadiusMax) {
         if (!areaRadiusMin) areaRadiusMin = 0;
         if (!areaRadiusMax) areaRadiusMax = this.radius;
 
@@ -56,6 +65,15 @@ Map.prototype = {
             y: this.radius + radius * Math.cos(angle)
         };
     }
-};
+
+    getRandomPositionOuter() {
+        return this.getRandomPositionInside(this.playerAreaRadius,
+            this.radius - this.offsetBorder);
+    }
+
+    getRandomPositionInner() {
+        return this.getRandomPositionInside(0, this.playerAreaRadius);
+    }
+}
 
 module.exports = Map;

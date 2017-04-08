@@ -15,9 +15,11 @@ var Messages = {
         return message;
     },
 
-    greetingStub: function(stubPosition) {
+    greetingStub: function(stubPosition, borderLength, borderHeight) {
         return {
-            [API_NOCH.getCode("stub position")]: stubPosition
+            [API_NOCH.getCode("stub position")]: stubPosition,
+            [API_NOCH.getCode("border length")]: borderLength,
+            [API_NOCH.getCode("border height")]: borderHeight
         }
     },
 

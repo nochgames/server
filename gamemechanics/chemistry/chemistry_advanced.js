@@ -205,7 +205,10 @@ class ChemistryAdvanced {
 
     updateGarbageConnectingPossibilityForPlayer(playerIndex) {
         for (let i = 0; i < this.context.garbage.length; ++i) {
-            if (this.context.garbage[i] && playerIndex in this.context.garbage[i].body.playersWhoSee) {
+
+            if (this.context.garbage[i] &&
+                this.context.garbage[i].body.playersWhoSee.indexOf(playerIndex) != -1) {
+
                 if (this.checkConnectingPossibilityGeneral(
                         this.context.players[playerIndex],
                         this.context.garbage[i].body, this.checkConnectingPossibility)) {

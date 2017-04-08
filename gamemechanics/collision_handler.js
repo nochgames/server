@@ -6,6 +6,7 @@
 
 var Messages = require("../messages");
 var Matter = require('matter-js/build/matter.js');
+var config = require('config-node');
 var Engine = Matter.Engine,
     World = Matter.World,
     Bodies = Matter.Bodies,
@@ -67,9 +68,11 @@ var CollisionHandler = function(context) {
                 (bodyA.inGameType == "player" ||
                 bodyA.inGameType == "garbage")) {
                 self.collideWithNeutron(bodyA, bodyB);
-            } else if (bodyA.inGameType == "Border") {
+            } else if (config.game.map.deadlyBorder &&
+                bodyA.inGameType == "Border") {
                 self.collideWithBorder(bodyB);
-            } else if (bodyB.inGameType == "Border") {
+            } else if (config.game.map.deadlyBorder &&
+                bodyB.inGameType == "Border") {
                 self.collideWithBorder(bodyA);
             }
         }
@@ -148,9 +151,9 @@ CollisionHandler.prototype = {
         var playerBody = massA > massB ? bodyA : bodyB;
         var garbageBody = massA < massB ? bodyA : bodyB;
 
+        ++this.context.getPlayer(playerBody).kills;
         this.context.playersEmitter.emit('player died', { player: this.context.getPlayer(garbageBody) });
 
-        ++this.context.getPlayer(playerBody).kills;
         this.context.playersEmitter.emit('murder', { player: this.context.getPlayer(playerBody) });
 
         this.context.getPlayer(garbageBody).lose(this.context.engine,

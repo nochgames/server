@@ -58,6 +58,9 @@ class WebsocketService {
     }
 
     sendToPlayer(message, reciever, event_name) {
+
+        if (reciever.isBot) return;
+
         message = JSON.stringify(message);
         try {
             reciever.ws.send(message);

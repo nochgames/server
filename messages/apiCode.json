@@ -29,5 +29,7 @@
   "garbage available": "gbav",
   "garbage not available": "gbnav",
   "availability": "av",
-  "scoreBoard": "sb"
+  "scoreBoard": "sb",
+  "border height": "bh",
+  "border length": "bl"
 }

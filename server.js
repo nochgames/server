@@ -29,7 +29,7 @@ class Server {
     run() {
         this.gamemechanics.configureEmitter();
         this.gamemechanics.game_map.createFullBorder();
-        this.gamemechanics.createGarbage(0.000008);
+        this.gamemechanics.createGarbage(config.game.garbageDensity);
         this.gamemechanics.run();
         this.playersEmitter.on('no players', (event) => { this.gamemechanics.stop(); });
     }

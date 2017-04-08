@@ -20,13 +20,15 @@ var Engine = Matter.Engine,
 
 class ActiveElement extends basicParticle {
     constructor(websocketservice, position, engine, elem,
-                emitter, chemistry) {
+                emitter, chemistry, color) {
 
         super(position, engine, elem, emitter, chemistry);
 
         this.websocketservice = websocketservice;
 
         this.kills = 0;
+
+        this.color = color;
 
         this.isStub = false;
 
@@ -41,11 +43,6 @@ class ActiveElement extends basicParticle {
         this.body.multiplier =  Math.sqrt(this.body.realRadius);
         this.resolution = { width: 0, height: 0 };
         this.body.coefficient = 1;
-    }
-
-    getLocalPosition() {
-        return { x: this.resolution.width / 2,
-            y: this.resolution.height / 2 };
     }
 
     makeMassCalc() {
@@ -170,13 +167,6 @@ class ActiveElement extends basicParticle {
         }
     }
 
-    applyVelocityGlobal(mx, my) {
-        mx = mx - this.getLocalPosition().x;
-        my = my - this.getLocalPosition().y;
-
-        this.applyVelocity(mx, my);
-    }
-
     applyVelocity(mx, my) {
 
         var speed = this.body.nuclearSpeed;
@@ -231,6 +221,10 @@ class ActiveElement extends basicParticle {
             this.previousPosition.x = this.body.position.x;
             this.previousPosition.y = this.body.position.y;
         }
+    }
+
+    update() {
+        this.updatePreviousPosition()
     }
 
     inScreen(object, tolerance) {
