@@ -6,8 +6,7 @@
 
 var Messages = require("../messages");
 var Matter = require('matter-js/build/matter.js');
-var config = require('config-node')();
-var elements = config.game.chemistry.elements;
+var config = require('config-node');
 var basicParticle = require("./basic particle");
 var garbage = require("./garbage");
 
@@ -171,13 +170,18 @@ class ActiveElement extends basicParticle {
 
         var speed = this.body.nuclearSpeed;
 
-        var PERCENT_FULL = 100;
-        var massCoefficient = 6;
-        var minMultiplier = 20;
-        var partsMultiplier = 2;
-        var forceCoefficient = 490;
+        const PERCENT_FULL = 100;
+        var massCoefficient = config.game.speed.massCoefficient;
+        var minMultiplier = config.game.speed.minMultiplier;
+        var partsMultiplier = config.game.speed.partsMultiplier;
+        var forceCoefficient = config.game.speed.forceCoefficient;
 
-        var multiplier = PERCENT_FULL - this.body.realMass * massCoefficient;
+        var multiplier = PERCENT_FULL -
+                        this.body.realMass * massCoefficient;
+
+        //console.log("current multiplier is " + multiplier);
+        console.log("velocity " + this.body.speed);
+
         if (multiplier < minMultiplier) multiplier = minMultiplier;
         speed = speed / PERCENT_FULL * multiplier / partsMultiplier;
 

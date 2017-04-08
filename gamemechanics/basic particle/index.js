@@ -241,7 +241,7 @@ class BasicParticle {
     }
 
     createNucleon(particle, shotPos, nucleonsArray, engine) {
-        var element = config.game.chemistry[elem];
+        var element = config.game.chemistry[particle];
 
         var OFFSET_SHOT = 20;
 
