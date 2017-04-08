@@ -7,8 +7,8 @@
 var Util_tools = require("../../util_tools");
 var Geometry = require("geometry_noch");
 var Matter = require('matter-js/build/matter.js');
-var params = require("db_noch");
-var elements = params.getParameter("elements");
+var config = require('config-node')();
+var elements = config.game.chemistry.elements;
 
 var Engine = Matter.Engine,
     World = Matter.World,
@@ -22,7 +22,7 @@ class BasicParticle {
         this.CHARGE_RADIUS = 8;
 
         //creating physics body for player
-        var element = params.getParameter(elem);
+        var element = config.game.chemistry[elem];
         this.body = Bodies.circle(position.x, position.y,
             element.radius + this.CHARGE_RADIUS,
             {restitution: 0.99});
@@ -202,7 +202,7 @@ class BasicParticle {
 
     setElement(elem) {
         if (elem) {
-            var element = params.getParameter(elem);
+            var element = config.game.chemistry[elem];
             if (!element) {
                 throw new Error(new Date() + '\nIncorrect behaviour');
             }
@@ -241,7 +241,7 @@ class BasicParticle {
     }
 
     createNucleon(particle, shotPos, nucleonsArray, engine) {
-        var element = params.getParameter(particle);
+        var element = config.game.chemistry[elem];
 
         var OFFSET_SHOT = 20;
 

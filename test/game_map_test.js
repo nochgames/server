@@ -6,11 +6,11 @@ var Engine = Matter.Engine,
     Bodies = Matter.Bodies,
     Body = Matter.Body,
     Composite = Matter.Composite;
-var params = require("db_noch");
-params.connect();
+
+var config = require('config-node');
 
 describe('game_map', function() {
-    var radius = params.getParameter("gameDiameter") / 2;
+    var radius = config.game.map.gameDiameter / 2;
 
     describe('#createFullBorder', function() {
         var engine = Engine.create();
@@ -26,7 +26,7 @@ describe('game_map', function() {
 
             it('should add enough bodies to create a semi-circle', function() {
 
-                var BORDER_PART_LENGTH = params.getParameter("borderPartLength");
+                var BORDER_PART_LENGTH = config.game.map.borderPartLength;
                 var circleLength = allBodies.length * BORDER_PART_LENGTH;
                 var circleRealLength = 2 * Math.PI * radius;
                 assert.isAtMost(Math.abs(circleRealLength - circleLength) / circleLength, 0.01,

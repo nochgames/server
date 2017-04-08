@@ -5,8 +5,9 @@
 'use strict';
 
 let Messages = require("../../messages");
-let params = require("db_noch");
 let Matter = require('matter-js/build/matter.js');
+
+var config = require('config-node');
 
 let Engine = Matter.Engine,
     World = Matter.World,
@@ -18,11 +19,11 @@ class ChemistryAdvanced {
 
     constructor(context) {
         this.context = context;
-        let elements = params.getParameter("elements");
+        var elements = config.game.chemistry.elements;
         this.testObjects = [];
         let element;
         for (let i = 0; i < elements; ++i) {
-            element = params.getParameter(elements[i]);
+            element = config.game.chemistry[elements[i]];
             this.testObjects.push({
                 element: elements[i],
                 energy: element.energy
@@ -40,10 +41,10 @@ class ChemistryAdvanced {
         if (!elem) return;
         this.recalculateEnergy(particle.body, elem);
 
-        let element = params.getParameter(elem);
+        var element = config.game.chemistry[elem];
         let previousElement = null;
         if (particle.body.element) {
-            previousElement = params.getParameter(particle.body.element);
+            previousElement = config.game.chemistry[particle.body.element];
             particle.body.energy -= previousElement.energy;
         }
 
@@ -121,8 +122,8 @@ class ChemistryAdvanced {
     }
 
     getBondParams(bodyA, bodyB) {
-        return params.getParameter(([bodyA.element,
-            bodyB.element].sort()).join(''));
+        return config.game.chemistry.connections[([bodyA.element,
+            bodyB.element].sort()).join('')];
     }
 
     checkConnectingPossibilityGeneral(player, garbageBody, checkFunction) {
@@ -139,8 +140,8 @@ class ChemistryAdvanced {
 
     checkConnectingPossibility(bodyA, bodyB) {
         if (bodyA.getFreeBonds() && bodyB.getFreeBonds()) {
-            let bond = params.getParameter(([bodyA.element,
-                bodyB.element].sort()).join(''));
+            let bond = config.game.chemistry.connections[(
+                [bodyA.element, bodyB.element].sort()).join('')];
 
             if (bond && (bodyA.energy - bond[bodyA.element]) >= 0 &&
                 (bodyB.energy - bond[bodyB.element]) >= 0) {

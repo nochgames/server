@@ -6,8 +6,8 @@
 
 var Messages = require("../messages");
 var Matter = require('matter-js/build/matter.js');
-var params = require("db_noch");
-var elements = params.getParameter("elements");
+var config = require('config-node')();
+var elements = config.game.chemistry.elements;
 var basicParticle = require("./basic particle");
 var garbage = require("./garbage");
 
@@ -69,7 +69,7 @@ class ActiveElement extends basicParticle {
         if (particle == "n" && this.body.neutrons == 0) return false;
 
         if (!this["timeLimit" + particle]) {
-            var element = params.getParameter(particle);
+            var element = config.game.chemistry[particle];
 
             var nucleonBody = this.createNucleon(particle, shotPos, nucleonsArray, engine);
 

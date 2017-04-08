@@ -6,8 +6,8 @@
 
 var Messages = require("../../messages");
 var Matter = require('matter-js/build/matter.js');
-var params = require("db_noch");
-var elements = params.getParameter("elements");
+var config = require('config-node')();
+var elements = config.game.chemistry.elements;
 var ActiveElement = require("../ActiveElement");
 var garbage = require("../garbage");
 

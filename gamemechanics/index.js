@@ -2,11 +2,7 @@
 
 var Messages = require("../messages");
 var Util_tools = require("../util_tools");
-var params = require("db_noch");
-params.connect();
 var Matter = require('matter-js/build/matter.js');
-var elements = params.getParameter("elements");
-var portions = params.getParameter("portions");
 var RecycleBin = require('./recycleBin');
 var Context = require('./context');
 var Garbage = require("./garbage");
@@ -16,6 +12,8 @@ var GameMap = require('./game_map');
 var CollisionHandler = require('./collision_handler');
 var Chemistry = require('./chemistry/chemistry_advanced');
 var config = require('config-node');
+var elements = config.game.chemistry.elements;
+var portions = config.game.map.portions;
 
 var Engine = Matter.Engine,
     World = Matter.World,

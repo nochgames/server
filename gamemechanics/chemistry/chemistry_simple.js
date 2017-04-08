@@ -4,7 +4,6 @@
 
 'use strict';
 
-var params = require("db_noch");
 var Matter = require('matter-js/build/matter.js');
 
 var Engine = Matter.Engine,
@@ -25,7 +24,7 @@ class ChemistrySimple {
 
     setElement(elem, particle) {
         if (elem) {
-            var element = params.getParameter(elem);
+            var element = config.game.chemistry[elem];
             particle.body.element = elem;
             var coefficient = (element.radius + particle.CHARGE_RADIUS)
                 / particle.body.circleRadius;
