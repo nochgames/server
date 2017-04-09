@@ -155,6 +155,8 @@ class ActiveElement extends basicParticle {
             });
         }
 
+        this.body.playersWhoSee = [];
+
         delete (this.body.realRadius);
         delete (this.body.coefficient);
         delete (this.body.resolution);
