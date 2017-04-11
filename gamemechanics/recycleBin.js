@@ -53,8 +53,8 @@ RecycleBin.prototype = {
                 case "player":
                     console.log("player number " + ghost.number + " is dead.");
                     var player = this.context.getMainObject(ghost);
-                    player.lose(this.context.engine, this.context.players, this.context.garbage);
                     this.context.playersEmitter.emit('player died', {player: player});
+                    player.lose(this.context.engine, this.context.players, this.context.garbage);
                     this.deleteProperly(ghost);
                     //player.garbagify(this.context.players, this.context.garbage);
                     delete this.ghosts[i];

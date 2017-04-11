@@ -149,9 +149,9 @@ class ActiveElement extends basicParticle {
             this.prepareForBond(newPlayerBody);
         } else {
             this.traversDST(this.body, function(node) {
-                node.emitter.emit('became garbage', { garbageBody: node });
                 node.inGameType = "garbage";
                 node.playerNumber = -958;
+                node.emitter.emit('became garbage', { garbageBody: node });
             });
         }
 
