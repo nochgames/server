@@ -16,6 +16,13 @@ var Util_tools = {
         return parsedArray;
     },
 
+    addToArray: function(array, obj) {
+        var i = 0;
+        while(array[i]) ++i;
+        array[i] = obj;
+        return i;
+    },
+
     isEmpty: function(obj) {
 
        for (let key in obj) {

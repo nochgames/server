@@ -81,7 +81,7 @@ RecycleBin.prototype = {
 
     prepareToDelete: function(body) {
         if (this.ghosts.indexOf(body) == -1) {
-            this.context.addToArray(this.ghosts, body);
+            Util_tools.addToArray(this.ghosts, body);
         }
     }
 };
