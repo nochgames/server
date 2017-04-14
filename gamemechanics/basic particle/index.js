@@ -146,7 +146,7 @@ class BasicParticle {
                     }
                 }
             } else {
-                console.log('constraint is here, but there is no parent though');
+                console.log('constraint is here, but there is no parent though ' + node.id);
             }
 
             World.remove(engine.world, node.constraint1);
