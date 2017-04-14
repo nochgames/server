@@ -204,6 +204,10 @@ CollisionHandler.prototype = {
             this.context.players, this.context.garbage, playerBody);
         this.context.getMainObject(garbageBody).reverse();
 
+        if (garbageBody.chemicalChildren.indexOf(garbageBody.chemicalParent) != -1) {
+            Util_tools.handleError("Reverse did not remove parent");
+        }
+
         this.createBond(playerBody, garbageBody);
     },
 

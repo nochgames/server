@@ -386,7 +386,7 @@ class GameMechanics {
 
                     var addedSuccessfully = this.addPlayerWhoSee(objects[i], j);
                     if (addedSuccessfully) {
-                        console.log("player number " + j + " now sees " + objects[i].body.id);
+                        //console.log("player number " + j + " now sees " + objects[i].body.id);
                     }
                 }
             }
@@ -433,6 +433,7 @@ class GameMechanics {
                 Util_tools.deleteFromArray(objects[i].body.playersWhoSee, playerId);
             }
             this.updateScoreBoard(playerId);
+            console.log("player died " + event.player.body.id);
         });
 
         this.context.playersEmitter.on('particle died', event => {

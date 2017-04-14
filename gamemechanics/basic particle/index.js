@@ -146,7 +146,7 @@ class BasicParticle {
                     }
                 }
             } else {
-                console.log('constraint is here, but there is no parent though ' + node.id);
+                Util_tools.handleError('constraint is here, but there is no parent though ' + node.id);
             }
 
             World.remove(engine.world, node.constraint1);
@@ -287,6 +287,7 @@ class BasicParticle {
                 Util_tools.deleteFromArray(revertTree.previousNode.chemicalChildren, node);
                 revertTree.previousNode.constraint1 = node.constraint1;
                 revertTree.previousNode.constraint2 = node.constraint2;
+
             }
             revertTree.previousNode = node;
         }
@@ -331,6 +332,9 @@ class BasicParticle {
     reverse() {
         var func = this.returnPostRevertTree();
         this.reversDST(this.body, func);
+        this.body.chemicalParent = null;
+        this.body.constraint1 = null;
+        this.body.constraint2 = null;
     }
 
     checkDecoupling(momentum, engine) {

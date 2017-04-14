@@ -92,7 +92,7 @@ class ChemistryAdvanced {
     }
 
     recalculateEnergy(body, newElement) {
-        let neighbours = body.chemicalChildren.concat([body.chemicalParent]);
+        let neighbours = body.chemicalChildren.concat(body.chemicalParent);
         for (let i = 0; i < neighbours.length; ++i) {
             if (!neighbours[i]) continue;
             let bond = this.getBondParams(body, neighbours[i]);
