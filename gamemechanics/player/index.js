@@ -56,10 +56,10 @@ class Player extends ActiveElement {
     }
 
     lose(engine, playersArray, garbageArray, newPlayerBody) {
-        super.lose(engine, playersArray, garbageArray, newPlayerBody);
         this.websocketservice.closeSocket(Messages.notifyDeath(true), this);
 
         delete (this.ws);
+        super.lose(engine, playersArray, garbageArray, newPlayerBody);
     }
 
     checkResizeGrow(newRadius) {
