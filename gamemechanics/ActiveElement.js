@@ -181,9 +181,6 @@ class ActiveElement extends basicParticle {
         var multiplier = PERCENT_FULL -
                         this.body.realMass * massCoefficient;
 
-        //console.log("current multiplier is " + multiplier);
-        console.log("velocity " + this.body.speed);
-
         if (multiplier < minMultiplier) multiplier = minMultiplier;
         speed = speed / PERCENT_FULL * multiplier / partsMultiplier;
 
