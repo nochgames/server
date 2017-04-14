@@ -60,7 +60,8 @@ RecycleBin.prototype = {
                     delete this.ghosts[i];
                     break;
                 default :
-                    throw new Error(new Date() + '\nIncorrect behaviour');
+                    Util_tools.handleError("ghost inGameType is unknown\n id: " +
+                                    ghost.id + ", inGameType: " + ghost.inGameType);
             }
         }
     },

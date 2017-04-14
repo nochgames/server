@@ -385,6 +385,9 @@ class GameMechanics {
                     Util_tools.inScreen.call(this.context.players[j], objects[i], 500)) {
 
                     var addedSuccessfully = this.addPlayerWhoSee(objects[i], j);
+                    if (addedSuccessfully) {
+                        console.log("player number " + j + " now sees " + objects[i].body.id);
+                    }
                 }
             }
             var playersWhoSee = objects[i].body.playersWhoSee;
@@ -469,19 +472,22 @@ class GameMechanics {
 
             let player = this.context.players.indexOf(event.p);
 
-            if (!player.isBot)
+            if (!player.isBot && !player.isStub)
                 this.addPlayerToUpdateConnectionPossibility(player)
         });
 
 
         this.context.playersEmitter.on('decoupled', event => {
 
-            let playersWhoSee = event.decoupledBodyA.playersWhoSee.concat();
+            let playersWhoSee = event.decoupledBodyA.playersWhoSee;
             for (let i = 0; i < event.decoupledBodyB.playersWhoSee.length; ++i) {
                 if (playersWhoSee.indexOf(event.decoupledBodyB.playersWhoSee[i]) == -1) {
                     playersWhoSee.push(event.decoupledBodyB.playersWhoSee[i]);
                 }
             }
+
+            //console.log("sending " + event.decoupledBodyA.id + " " +
+            //            event.decoupledBodyB.id + " to  " + playersWhoSee);
 
             this.context.websocketservice.sendSpecificPlayers(
                 Messages.deleteBond(event.decoupledBodyA.id, event.decoupledBodyB.id),
@@ -493,7 +499,7 @@ class GameMechanics {
 
             let player = this.context.players.indexOf(event.p);
 
-            if (!player.isBot)
+            if (!player.isBot && !player.isStub)
                 this.addPlayerToUpdateConnectionPossibility(player)
         });
 

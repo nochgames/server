@@ -9,6 +9,7 @@ var Matter = require('matter-js/build/matter.js');
 var config = require('config-node');
 var basicParticle = require("./basic particle");
 var garbage = require("./garbage");
+var Util_tools = require("../util_tools");
 
 var Engine = Matter.Engine,
     World = Matter.World,
@@ -164,7 +165,7 @@ class ActiveElement extends basicParticle {
         if (playerIndex > -1) {
             delete playersArray[playerIndex];
         } else {
-            throw new Error(new Date() + '\nIncorrect behaviour');
+            Util_tools.handleError("garbagifying garbage " + body.id);
         }
     }
 

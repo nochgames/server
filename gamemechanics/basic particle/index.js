@@ -204,7 +204,7 @@ class BasicParticle {
         if (elem) {
             var element = config.game.chemistry[elem];
             if (!element) {
-                throw new Error(new Date() + '\nIncorrect behaviour');
+                Util_tools.handleError('Element from setElement not found in library: ' + elem);
             }
             this.body.element = elem;
             var coefficient = (element.radius + this.CHARGE_RADIUS)
@@ -574,7 +574,8 @@ class BasicParticle {
                 while (!child) {
                     child = this.body.chemicalChildren.pop();
                 }
-                if (!child) throw new Error(new Date() + '\nIncorrect behaviour');
+                if (!child) Util_tools.handleError(
+                    "Tried to dismount branch, but no children were found. id: " + this.body.id);
                 this.traversDST(child, this.free, this.letGo, engine);
             } else {
                 this.traversDST(this.body, this.free, this.letGo, engine);

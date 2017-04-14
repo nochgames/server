@@ -4,6 +4,7 @@
 
 'use strict';
 
+var Util_tools = require("../../util_tools");
 let Messages = require("../../messages");
 let Matter = require('matter-js/build/matter.js');
 
@@ -139,6 +140,17 @@ class ChemistryAdvanced {
     }
 
     checkConnectingPossibility(bodyA, bodyB) {
+
+        if (bodyA.inGameType == 'garbage') {
+
+            if (bodyA.chemicalParent) console.log("id " + bodyA.chemicalParent.id);
+            if (bodyA.chemicalChildren)
+                console.log(bodyA.chemicalChildren.map(child => {
+                    return child.id
+                }));
+            Util_tools.handleError("id is considered player, but is garbage: " + bodyA.id, false);
+        }
+
         if (bodyA.getFreeBonds() && bodyB.getFreeBonds()) {
             let bond = config.game.chemistry.connections[(
                 [bodyA.element, bodyB.element].sort()).join('')];
@@ -166,7 +178,7 @@ class ChemistryAdvanced {
 
     isImpossible(body) {
         if (body.energy < 0 && body.chemicalBonds == 0) {
-            throw new Error("Body with negative energy has no bonds");
+            Util_tools.handleError("Body with negative energy has no bonds. id:" + body.id);
         }
         return body.chemicalBonds > body.elValency ||
             this.calculateEnergy(body) > body.energy;
@@ -179,7 +191,8 @@ class ChemistryAdvanced {
     }
 
     findBodyToConnect(playerBody, garbageBody) {
-        return this.checkConnectingPossibilityGeneral(this.context.getPlayer(playerBody),
+        return this.checkConnectingPossibilityGeneral(
+            this.context.getPlayer(playerBody),
             garbageBody, this.checkConnectingPossibility);
     }
 

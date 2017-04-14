@@ -7,6 +7,7 @@
 var Messages = require("../messages");
 var Matter = require('matter-js/build/matter.js');
 var config = require('config-node');
+var Util_tools = require("../util_tools");
 var Engine = Matter.Engine,
     World = Matter.World,
     Bodies = Matter.Bodies,
@@ -22,6 +23,12 @@ var CollisionHandler = function(context) {
         for (let i = 0; i < pairs.length; i++) {
             var bodyA = pairs[i].bodyA;
             var bodyB = pairs[i].bodyB;
+
+            if (bodyA.collisionFilter.mask == 8 ||
+                bodyB.collisionFilter.mask == 8) {
+                //console.log("Same body is processed again");
+                continue;
+            }
 
             if ((bodyA.inGameType  == "player" ||
                 bodyA.inGameType  == "playerPart") &&
@@ -90,12 +97,22 @@ CollisionHandler.prototype = {
 
         this.link(garbageBody, playerBody);
 
-        var newRadius = Geometry.calculateDistance(this.context.getPlayer(playerBody)
-                                                .body.position, garbageBody.position);
-        garbageBody.player = this.context.getPlayer(playerBody);
-        this.context.getPlayer(playerBody).checkResizeGrow(newRadius);
+        let player = this.context.getPlayer(playerBody);
 
-        this.context.getPlayer(playerBody).recalculateMass();
+        if (!player) console.log(
+            "playerBody: type " + playerBody.inGameType +
+                " id " + garbageBody.playerNumber +
+                " garbageBody: type " + garbageBody.inGameType +
+                " id " + garbageBody.playerNumber
+        );
+
+        var newRadius =
+            Geometry.calculateDistance(player.body.position, garbageBody.position);
+
+        garbageBody.player = player;
+        player.checkResizeGrow(newRadius);
+
+        player.recalculateMass();
         this.context.getMainObject(garbageBody).markAsPlayer(playerBody);
         this.context.getMainObject(playerBody).connectBody(garbageBody, this.createFinalCreateBond());
     },
@@ -111,6 +128,35 @@ CollisionHandler.prototype = {
         var context = this.context;
 
         return function(playerBody, garbageBody, angle1, angle2) {
+
+            garbageBody.collisionFilter.mask = 0x0001;
+
+            if (garbageBody.chemicalParent != playerBody ||
+                playerBody.chemicalChildren.indexOf(garbageBody) == -1) {
+                var message = "";
+                if (garbageBody.chemicalChildren)
+                    message += playerBody.chemicalChildren.map(
+                        child => {return child.id});
+                if (garbageBody.chemicalParent) {
+                    message += "\nparent id " + garbageBody.chemicalParent.id +
+                                "\nmask " + garbageBody.collisionFilter.mask;
+                }
+                Util_tools.handleError(message + "\nbodies are connected in a wrong way!\n" +
+                    (garbageBody.player.body.id == playerBody.id) +
+                    " garbageBody id " + garbageBody.id +
+                    " playerBody id " + playerBody.id);
+                if (config.noThrow)
+                    return;
+            }
+            else if (playerBody.chemicalParent == garbageBody &&
+                garbageBody.chemicalChildren.indexOf(playerBody) != -1) {
+                Util_tools.handleError("reversed connection" +
+                    " garbageBody id " + garbageBody.id +
+                    " playerBody id " + playerBody.id);
+                if (config.noThrow)
+                    return;
+            }
+
             var bondStiffness = 0.05;
 
             var constraintA = createBondConstraint(playerBody, garbageBody, bondStiffness);
@@ -124,15 +170,13 @@ CollisionHandler.prototype = {
 
             World.add(context.engine.world, [constraintA, constraintB]);
 
-            garbageBody.collisionFilter.mask = 0x0001;
-
             context.playersEmitter.emit('bond created',
                 {bc1: playerBody, bc2: garbageBody, p: context.getPlayer(playerBody)});
         }
     },
 
     link: function(child, parent) {
-        this.context.addToArray(parent.chemicalChildren, child);
+        Util_tools.addToArray(parent.chemicalChildren, child);
         child.chemicalParent = parent;
     },
 
@@ -175,7 +219,8 @@ CollisionHandler.prototype = {
     collideWithPhoton: function(elementBody, photonBody) {
         var momentum = this.calculateMomentum(elementBody, photonBody);
 
-        this.context.getMainObject(elementBody).checkDecoupling(momentum, this.context.engine);
+        this.context.getMainObject(elementBody).
+        checkDecoupling(momentum, this.context.engine);
     },
 
     collideWithNeutron: function(elementBody, neutronBody) {
@@ -209,12 +254,34 @@ CollisionHandler.prototype = {
             .findBodyToConnect(playerBody, garbageBody);
 
         if (bodyToConnect) {
+            if (bodyToConnect.inGameType != "playerPart" &&
+                bodyToConnect.inGameType != 'player') {
+                var garbage = this.context.garbage.concat(
+                    this.context.players.filter(player =>
+                    {return player && !player.isStub && !player.isBot}));
+                for (var i = 0; i < garbage.length; ++i) {
+                    if (garbage[i] && garbage[i].body.chemicalChildren &&
+                        garbage[i].body.chemicalChildren.indexOf(bodyToConnect) != -1) {
+                        console.log("still in children of " + garbage[i].body.id);
+                        if (config.noThrow)
+                            Util_tools.deleteFromArray(garbage[i].body.chemicalChildren, bodyToConnect);
+                    } else if (garbage[i] && garbage[i].body.chemicalParent == bodyToConnect) {
+                        console.log("still parent of " + garbage[i].body.id);
+                    }
+                }
+                Util_tools.handleError("body to connect " + bodyToConnect.inGameType);
+
+                return;
+            }
+
             this.connectGarbageToPlayer(bodyToConnect, garbageBody);
-        } else if (playerBody.inGameType  == "playerPart"){
+        } else if (playerBody.inGameType  == "playerPart") {
             var momentum = this.calculateMomentum(playerBody, garbageBody);
 
-            this.context.getMainObject(playerBody).checkDecoupling(momentum, this.context.engine);
-            this.context.getMainObject(garbageBody).checkDecoupling(momentum, this.context.engine);
+            this.context.getMainObject(playerBody).
+            checkDecoupling(momentum, this.context.engine);
+            this.context.getMainObject(garbageBody).
+            checkDecoupling(momentum, this.context.engine);
         }
     },
 
@@ -226,8 +293,10 @@ CollisionHandler.prototype = {
         } else {
             var momentum = this.calculateMomentum(playerBodyA, playerBodyB);
 
-            this.context.getMainObject(playerBodyA).checkDecoupling(momentum, this.context.engine);
-            this.context.getMainObject(playerBodyB).checkDecoupling(momentum, this.context.engine);
+            this.context.getMainObject(playerBodyA).
+            checkDecoupling(momentum, this.context.engine);
+            this.context.getMainObject(playerBodyB).
+            checkDecoupling(momentum, this.context.engine);
         }
     },
 

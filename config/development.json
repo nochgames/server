@@ -1,14 +1,15 @@
 {
+  "noThrow": false,
   "server" : {
     "port": "8085"
   },
 
   "game": {
-    "botsQuantity": 0,
+    "botsQuantity": 20,
 
     "defaultElement": "C",
 
-    "garbageDensity": 0.0000012,
+    "garbageDensity": 0.0000332,
 
     "chemistry": {
       "elements": [ "H", "He", "Li", "Be",

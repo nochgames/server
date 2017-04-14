@@ -4,6 +4,8 @@
 
 'use strict';
 
+var config = require('config-node');
+
 var Util_tools = {
 
     parseCoordinates: function(array) {
@@ -57,8 +59,16 @@ var Util_tools = {
         if (index > -1) {
             array.splice(index, 1);
         }
-    }
+    },
 
+    handleError: function (message, doThrow) {
+        doThrow = (typeof doThrow !== 'undefined') ? doThrow: true;
+        if (!config.noThrow && doThrow) {
+            throw new Error(message);
+        } else  {
+            console.log(message);
+        }
+    }
 };
 
 module.exports = Util_tools;
