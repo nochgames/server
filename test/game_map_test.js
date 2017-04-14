@@ -7,7 +7,7 @@ var Engine = Matter.Engine,
     Body = Matter.Body,
     Composite = Matter.Composite;
 
-var config = require('config-node');
+var config = require('config-node')();
 
 describe('game_map', function() {
     var radius = config.game.map.gameDiameter / 2;

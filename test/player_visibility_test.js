@@ -33,15 +33,16 @@ describe('gamemechanics.checkGarbageVisibility', function() {
                 }
                 context.garbage.push(garbage);
             }
-            var inScreen = sinon.stub();
+            context.inScreen = sinon.stub();
+
             for (let i = 0; i < playersNumber; ++i) {
-                context.players.push({ isReady: isReady, inScreen: inScreen });
+                context.players.push({ isReady: isReady});
             }
             websocketservice.sendToPlayer = sinon.stub();
             gamemechanics.addPlayerWhoSee = sinon.expectation.create('addPlayersWhoSee');
             gamemechanics.addPlayerWhoSee.exactly(expected);
             gamemechanics.context = context;
-            inScreen.returns(inScreenValue);
+            context.inScreen.returns(inScreenValue);
             gamemechanics.addPlayerWhoSee.returns(true);
             gamemechanics.checkGarbageVisibility();
             gamemechanics.addPlayerWhoSee.verify();
@@ -55,44 +56,41 @@ describe('gamemechanics.checkGarbageVisibility', function() {
     testCheckGarbageVisibility(particlesNumber, playersNumber, 0, true, true, particlesNumber * playersNumber);
     testCheckGarbageVisibility(particlesNumber, playersNumber, 0, false, true, 0);
     testCheckGarbageVisibility(particlesNumber, playersNumber, 0, true, false, 0);
-    testCheckGarbageVisibility(particlesNumber, playersNumber, parentsNumber, true, true, (particlesNumber *
-                                (parentsNumber + 1)) * playersNumber);
+    testCheckGarbageVisibility(particlesNumber, playersNumber, parentsNumber, true, true, particlesNumber * playersNumber);
 
     it('should inform players to delete garbage that just left the screen', function() {
         var playersWhoSeeQuantitiy = 10;
         var particlesNumber = 10;
         var playersNumber = 20;
         if (particlesNumber < playersWhoSeeQuantitiy) throw new Error(
-            'Incorrect tset input data: playersWhoSeeQuantity is ' + playersWhoSeeQuantitiy +
+            'Incorrect test input data: playersWhoSeeQuantity is ' + playersWhoSeeQuantitiy +
             ' which is more than actual players(' + playersNumber + ')');
 
-        websocketservice.sendToPlayer = sinon.stub();
+        websocketservice.sendToPlayer = sinon.spy();
         var context = new Context({}, {}, {}, websocketservice);
 
-        var inScreen = sinon.stub();
+        context.inScreen = sinon.stub();
 
         for (let i = 0; i < playersNumber; ++i) {
-            context.players.push({ inScreen: inScreen });
+            context.players.push({id:i});
         }
 
         for (let i = 0; i < particlesNumber; ++i) {
             var garbage = { body: { playersWhoSee: [], id: i } };
             for (let j = 0; j < playersWhoSeeQuantitiy; ++j) {
                 garbage.body.playersWhoSee.push(j);
-                websocketservice.sendToPlayer.withArgs(
-                    Messages.deleteParticle(i), context.players[j]);
             }
             context.garbage.push(garbage);
         }
 
         gamemechanics.context = context;
-        inScreen.returns(false);
+        context.inScreen.returns(false);
         gamemechanics.checkGarbageVisibility();
 
         for (let i = 0; i < particlesNumber; ++i) {
             for (let j = 0; j < playersWhoSeeQuantitiy; ++j) {
-                assert(websocketservice.sendToPlayer.withArgs(
-                    Messages.deleteParticle(i), context.players[j]).called);
+                sinon.assert.calledWith(websocketservice.sendToPlayer,
+                    Messages.deleteParticle(i), context.players[j]);
             }
         }
 

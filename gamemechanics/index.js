@@ -381,8 +381,9 @@ class GameMechanics {
         });
         for (let i = 0; i < objects.length; ++i) {
             for (let j = 0; j < this.context.players.length; ++j) {
+                // inScreen is called on context for tests
                 if (this.context.players[j] && this.context.players[j].isReady &&
-                    Util_tools.inScreen.call(this.context.players[j], objects[i], 500)) {
+                    this.context.inScreen.call(this.context.players[j], objects[i], 500)) {
 
                     var addedSuccessfully = this.addPlayerWhoSee(objects[i], j);
                     if (addedSuccessfully) {
@@ -396,7 +397,8 @@ class GameMechanics {
             while (j--) {
                 if (!this.context.players[playersWhoSee[j]]) {
                     playersWhoSee.splice(j, 1);
-                } else if (!Util_tools.inScreen.call(this.context.players[playersWhoSee[j]], objects[i], 500)) {
+                    // inScreen is called on context for tests
+                } else if (!this.context.inScreen.call(this.context.players[playersWhoSee[j]], objects[i], 500)) {
                     this.context.websocketservice.sendToPlayer(
                         Messages.deleteParticle(objects[i].body.id),
                         this.context.players[playersWhoSee[j]]);
