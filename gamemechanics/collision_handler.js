@@ -181,8 +181,8 @@ CollisionHandler.prototype = {
     },
 
     connectGarbageToPlayer: function(playerBody, garbageBody) {
-
-        this.context.getMainObject(garbageBody).reverse();
+        if (config.game.doReverseGarbage)
+            this.context.getMainObject(garbageBody).reverse();
         this.context.getMainObject(garbageBody).prepareForBond();
         this.createBond(playerBody, garbageBody);
     },
@@ -202,7 +202,12 @@ CollisionHandler.prototype = {
 
         this.context.getPlayer(garbageBody).lose(this.context.engine,
             this.context.players, this.context.garbage, playerBody);
-        this.context.getMainObject(garbageBody).reverse();
+        var exPlayer = this.context.getMainObject(garbageBody).reverseFWD();
+
+        if (exPlayer && !exPlayer.chemicalParent) {
+            Util_tools.handleError("reverse failed to add parent to ex player, exPlayer id: "
+                                    + exPlayer.id + exPlayer.constraint1);
+        }
 
         if (garbageBody.chemicalChildren.indexOf(garbageBody.chemicalParent) != -1) {
             Util_tools.handleError("Reverse did not remove parent");
@@ -214,7 +219,8 @@ CollisionHandler.prototype = {
     collideWithProton: function(elementBody, protonBody) {
 
         this.context.getMainObject(elementBody).changeCharge(1, this.context.engine, this.context.freeProtons);
-        this.context.websocketservice.sendEverybody(Messages.changeElementGarbage(elementBody.id, elementBody.element));
+        this.context.websocketservice.sendEverybody(
+            Messages.changeElementGarbage(elementBody.id, elementBody.element));
         this.context.playersEmitter.emit('particle died', { id: protonBody.id,
             playersWhoSee: protonBody.playersWhoSee });
         this.context.recyclebin.prepareToDelete(protonBody);

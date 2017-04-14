@@ -9,6 +9,8 @@
 
     "defaultElement": "C",
 
+    "doReverseGarbage": false,
+
     "garbageDensity": 0.0000332,
 
     "chemistry": {

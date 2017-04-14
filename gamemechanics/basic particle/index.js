@@ -75,6 +75,10 @@ class BasicParticle {
         }
         for (let i = 0; i < node.chemicalChildren.length; ++i) {
             if (node.chemicalChildren[i]) {
+                if (node.constraint1 && !node.chemicalParent) {
+                    Util_tools.handleError(node.id + " has constraint and no parent" +
+                        node + " " + node.player.body.id);
+                }
                 this.traversDST(node.chemicalChildren[i], visit, visitAgain, engine);
             }
         }
@@ -287,10 +291,19 @@ class BasicParticle {
                 Util_tools.deleteFromArray(revertTree.previousNode.chemicalChildren, node);
                 revertTree.previousNode.constraint1 = node.constraint1;
                 revertTree.previousNode.constraint2 = node.constraint2;
-
+                if (revertTree.isFirst){
+                    revertTree.exPlayer = revertTree.previousNode;
+                    console.log("setting " + revertTree.previousNode.id
+                                    + " to " + node.id);
+                    console.log(revertTree.previousNode.chemecalParent.id);
+                    revertTree.isFirst = false;
+                }
             }
+            if (revertTree.exPlayer)
+                console.log(revertTree.exPlayer.chemecalParent.id);
             revertTree.previousNode = node;
         }
+        revertTree.isFirst = true;
         revertTree.previousNode = null;
         return revertTree;
     }
@@ -322,6 +335,7 @@ class BasicParticle {
 
     reversDST(node, visit) {
         if (!node.chemicalParent) {
+            console.log("setting player " + node.id + " parent ");
             visit(node);
             return;
         }
@@ -335,6 +349,49 @@ class BasicParticle {
         this.body.chemicalParent = null;
         this.body.constraint1 = null;
         this.body.constraint2 = null;
+        if (func.exPlayer)
+            console.log("returning " + func.exPlayer.chemecalParent.id);
+        return func.exPlayer
+    }
+
+    reverseFWD() {
+        let exPlayer;
+        let prevParent;
+        let prevConstraint1;
+        let prevConstraint2;
+        let prevChildren;
+
+        let node = this.body;
+
+        let isFirst = true;
+
+        while (node) {
+            let parent = node;
+            let cons1 = node.constraint1;
+            let cons2 = node.constraint2;
+            let childeren = node.chemicalChildren;
+
+            if (prevParent) {
+                node.chemecalParent = prevParent;
+                node.constraint1 = prevConstraint1;
+                node.constraint2 = prevConstraint2;
+                Util_tools.addToArray(prevChildren, node);
+            }
+
+            prevParent = parent;
+            prevConstraint1 = cons1;
+            prevConstraint2 = cons2;
+            prevChildren = childeren;
+
+            if (!isFirst) {
+                exPlayer = node;
+            } else {
+                isFirst = false;
+            }
+
+            node = node.chemecalParent;
+        }
+        return exPlayer;
     }
 
     checkDecoupling(momentum, engine) {
