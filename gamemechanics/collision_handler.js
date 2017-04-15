@@ -17,8 +17,8 @@ var Engine = Matter.Engine,
 
 var CollisionHandler = function(context) {
     this.context = context;
-    var self = this;
-    Matter.Events.on(context.engine, 'collisionStart', function(event) {
+
+    Matter.Events.on(context.engine, 'collisionStart', event => {
         var pairs = event.pairs;
         for (let i = 0; i < pairs.length; i++) {
             var bodyA = pairs[i].bodyA;
@@ -33,31 +33,31 @@ var CollisionHandler = function(context) {
             if ((bodyA.inGameType  == "player" ||
                 bodyA.inGameType  == "playerPart") &&
                 bodyB.inGameType  == "garbage") {
-                self.collideWithGarbage(bodyA, bodyB);
+                this.collideWithGarbage(bodyA, bodyB);
             } else if (bodyA.inGameType  == "garbage" &&
                 (bodyB.inGameType  == "player" ||
                 bodyB.inGameType  == "playerPart")) {
-                self.collideWithGarbage(bodyB, bodyA);
+                this.collideWithGarbage(bodyB, bodyA);
             } else if (bodyA.inGameType  == "p" &&
                 (bodyB.inGameType  == "player" ||
                 bodyB.inGameType  == "playerPart" ||
                 bodyB.inGameType  == "garbage")) {
-                self.collideWithProton(bodyB, bodyA);
+                this.collideWithProton(bodyB, bodyA);
             } else if (bodyB.inGameType  == "p" &&
                 (bodyA.inGameType  == "player"||
                 bodyA.inGameType  == "playerPart" ||
                 bodyA.inGameType  == "garbage")) {
-                self.collideWithProton(bodyA, bodyB);
+                this.collideWithProton(bodyA, bodyB);
             } else if (bodyA.inGameType  == "ph" &&
                 (bodyB.inGameType  == "player" ||
                 bodyB.inGameType  == "playerPart" ||
                 bodyB.inGameType  == "garbage")) {
-                self.collideWithPhoton(bodyB, bodyA);
+                this.collideWithPhoton(bodyB, bodyA);
             } else if (bodyB.inGameType  == "ph" &&
                 (bodyA.inGameType  == "player"||
                 bodyA.inGameType  == "playerPart" ||
                 bodyA.inGameType  == "garbage")) {
-                self.collideWithPhoton(bodyA, bodyB);
+                this.collideWithPhoton(bodyA, bodyB);
             } else if (bodyB.inGameType  == "player" &&
                 bodyA.inGameType  == "player" ||
                 bodyB.inGameType  == "player" &&
@@ -66,21 +66,21 @@ var CollisionHandler = function(context) {
                 bodyA.inGameType  == "player" ||
                 bodyB.inGameType  == "playerPart" &&
                 bodyA.inGameType  == "playerPart") {
-                self.collidePVP(bodyA, bodyB);
+                this.collidePVP(bodyA, bodyB);
             } else if (bodyA.inGameType == "n" &&
                 (bodyB.inGameType == "player" ||
                 bodyB.inGameType == "garbage")) {
-                self.collideWithNeutron(bodyB, bodyA);
+                this.collideWithNeutron(bodyB, bodyA);
             } else if (bodyB.inGameType == "n" &&
                 (bodyA.inGameType == "player" ||
                 bodyA.inGameType == "garbage")) {
-                self.collideWithNeutron(bodyA, bodyB);
+                this.collideWithNeutron(bodyA, bodyB);
             } else if (config.game.map.deadlyBorder &&
                 bodyA.inGameType == "Border") {
-                self.collideWithBorder(bodyB);
+                this.collideWithBorder(bodyB);
             } else if (config.game.map.deadlyBorder &&
                 bodyB.inGameType == "Border") {
-                self.collideWithBorder(bodyA);
+                this.collideWithBorder(bodyA);
             }
         }
     });
