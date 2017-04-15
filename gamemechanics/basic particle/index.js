@@ -283,31 +283,6 @@ class BasicParticle {
         return nucleonBody;
     }
 
-    returnPostRevertTree() {
-        function revertTree(node) {
-            if (revertTree.previousNode) {
-                node.chemicalChildren.push(revertTree.previousNode);
-                revertTree.previousNode.chemecalParent = node;
-                Util_tools.deleteFromArray(revertTree.previousNode.chemicalChildren, node);
-                revertTree.previousNode.constraint1 = node.constraint1;
-                revertTree.previousNode.constraint2 = node.constraint2;
-                if (revertTree.isFirst){
-                    revertTree.exPlayer = revertTree.previousNode;
-                    console.log(`setting ${revertTree.previousNode.id}
-                                     to ${node.id}`);
-                    console.log(revertTree.previousNode.chemecalParent.id);
-                    revertTree.isFirst = false;
-                }
-            }
-            if (revertTree.exPlayer)
-                console.log(revertTree.exPlayer.chemecalParent.id);
-            revertTree.previousNode = node;
-        }
-        revertTree.isFirst = true;
-        revertTree.previousNode = null;
-        return revertTree;
-    }
-
     prepareForBond(newPlayerBody) {
         this.traversDST(this.body, function(node) {
 
@@ -331,27 +306,6 @@ class BasicParticle {
 
     die(engine) {
         this.traversDST(this.body, this.free, this.letGo, engine);
-    }
-
-    reversDST(node, visit) {
-        if (!node.chemicalParent) {
-            console.log(`setting player ${node.id} parent`);
-            visit(node);
-            return;
-        }
-        this.reversDST(node.chemicalParent, visit);
-        visit(node);
-    }
-
-    reverse() {
-        var func = this.returnPostRevertTree();
-        this.reversDST(this.body, func);
-        this.body.chemicalParent = null;
-        this.body.constraint1 = null;
-        this.body.constraint2 = null;
-        if (func.exPlayer)
-            console.log(`returning ${func.exPlayer.chemecalParent.id}`);
-        return func.exPlayer
     }
 
     reverseFWD() {
