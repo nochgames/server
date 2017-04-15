@@ -61,8 +61,7 @@ var Util_tools = {
         }
     },
 
-    handleError: function (message, doThrow) {
-        doThrow = (typeof doThrow !== 'undefined') ? doThrow: true;
+    handleError: function (message, doThrow = true) {
         if (!config.noThrow && doThrow) {
             throw new Error(message);
         } else  {

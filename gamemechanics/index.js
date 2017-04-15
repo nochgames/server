@@ -359,8 +359,7 @@ class GameMechanics {
         return true;
     }
 
-    updateScoreBoard(deadId) {
-        deadId = (typeof deadId !== 'undefined') ?  deadId : -1;
+    updateScoreBoard(deadId = -1) {
 
         var scoreBoard = this.context.players.filter(player => {
             return player && !player.isStub && player.body.number != deadId;
