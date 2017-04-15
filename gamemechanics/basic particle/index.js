@@ -293,8 +293,8 @@ class BasicParticle {
                 revertTree.previousNode.constraint2 = node.constraint2;
                 if (revertTree.isFirst){
                     revertTree.exPlayer = revertTree.previousNode;
-                    console.log("setting " + revertTree.previousNode.id
-                                    + " to " + node.id);
+                    console.log(`setting ${revertTree.previousNode.id}
+                                     to ${node.id}`);
                     console.log(revertTree.previousNode.chemecalParent.id);
                     revertTree.isFirst = false;
                 }
@@ -335,7 +335,7 @@ class BasicParticle {
 
     reversDST(node, visit) {
         if (!node.chemicalParent) {
-            console.log("setting player " + node.id + " parent ");
+            console.log(`setting player ${node.id} parent`);
             visit(node);
             return;
         }
@@ -350,7 +350,7 @@ class BasicParticle {
         this.body.constraint1 = null;
         this.body.constraint2 = null;
         if (func.exPlayer)
-            console.log("returning " + func.exPlayer.chemecalParent.id);
+            console.log(`returning ${func.exPlayer.chemecalParent.id}`);
         return func.exPlayer
     }
 

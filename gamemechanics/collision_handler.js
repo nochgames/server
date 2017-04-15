@@ -150,9 +150,8 @@ CollisionHandler.prototype = {
             }
             else if (playerBody.chemicalParent == garbageBody &&
                 garbageBody.chemicalChildren.indexOf(playerBody) != -1) {
-                Util_tools.handleError("reversed connection" +
-                    " garbageBody id " + garbageBody.id +
-                    " playerBody id " + playerBody.id);
+                Util_tools.handleError(`reversed connection garbageBody id 
+                                        ${garbageBody.id} playerBody id ${playerBody.id}`);
                 if (config.noThrow)
                     return;
             }
@@ -205,8 +204,7 @@ CollisionHandler.prototype = {
         var exPlayer = this.context.getMainObject(garbageBody).reverseFWD();
 
         if (exPlayer && !exPlayer.chemicalParent) {
-            Util_tools.handleError("reverse failed to add parent to ex player, exPlayer id: "
-                                    + exPlayer.id + exPlayer.constraint1);
+            Util_tools.handleError(`reverse failed to add parent to ex player, exPlayer id: ${exPlayer.id}`);
         }
 
         if (garbageBody.chemicalChildren.indexOf(garbageBody.chemicalParent) != -1) {
@@ -272,14 +270,14 @@ CollisionHandler.prototype = {
                 for (var i = 0; i < garbage.length; ++i) {
                     if (garbage[i] && garbage[i].body.chemicalChildren &&
                         garbage[i].body.chemicalChildren.indexOf(bodyToConnect) != -1) {
-                        console.log("still in children of " + garbage[i].body.id);
+                        console.log(`still in children of ${garbage[i].body.id}`);
                         if (config.noThrow)
                             Util_tools.deleteFromArray(garbage[i].body.chemicalChildren, bodyToConnect);
                     } else if (garbage[i] && garbage[i].body.chemicalParent == bodyToConnect) {
-                        console.log("still parent of " + garbage[i].body.id);
+                        console.log(`still parent of ${garbage[i].body.id}`);
                     }
                 }
-                Util_tools.handleError("body to connect " + bodyToConnect.inGameType);
+                Util_tools.handleError(`body to connect ${bodyToConnect.inGameType}`);
 
                 return;
             }

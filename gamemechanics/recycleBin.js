@@ -51,7 +51,7 @@ RecycleBin.prototype = {
                     delete this.ghosts[i];
                     break;
                 case "player":
-                    console.log("player number " + ghost.number + " is dead.");
+                    console.log(`player number ${ghost.number} is dead.`);
                     var player = this.context.getMainObject(ghost);
                     this.context.playersEmitter.emit('player died', {player: player});
                     player.lose(this.context.engine, this.context.players, this.context.garbage);
@@ -60,8 +60,8 @@ RecycleBin.prototype = {
                     delete this.ghosts[i];
                     break;
                 default :
-                    Util_tools.handleError("ghost inGameType is unknown\n id: " +
-                                    ghost.id + ", inGameType: " + ghost.inGameType);
+                    Util_tools.handleError(`ghost inGameType is unknown\n id:
+                                    ${ghost.id}, inGameType: ${ghost.inGameType}`);
             }
         }
     },

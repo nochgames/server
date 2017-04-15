@@ -45,7 +45,7 @@ class WebsocketService {
                 self.createDeleteStub(stub));
         });
 
-        console.log('The server is running on port ' + wsPort);
+        console.log(`The server is running on port ${wsPort}`);
     };
     
     updateEventListener(socket, event, oldKey, newKey, map, callback) {
@@ -65,8 +65,8 @@ class WebsocketService {
         try {
             reciever.ws.send(message);
         } catch(e) {
-            console.log('Unable to send ' + message +
-                ' to player. Player is\n' + reciever + '\n' + e);
+            console.log(`Unable to send ${message}
+                 to player. Player is\n ${reciever}\n ${e}`);
         }
     }
 
@@ -84,7 +84,7 @@ class WebsocketService {
             var ip = reciever.ws._socket.remoteAddress;
             reciever.ws.close();
 
-            console.log("killing player, IP " + ip);
+            console.log(`killing player, IP ${ip}`);
             this.IPs.delete(ip);
         } catch (e) {
             //do nothing
@@ -160,7 +160,7 @@ class WebsocketService {
             if ('x' in parsedMessage) {
                 player.setResolution(parsedMessage);
                 self.gamemechanics.context.chemistry.updateGarbageConnectingPossibilityForPlayer()
-                console.log("Now resolution is " + message);
+                console.log(`Now resolution is ${message}`);
             }
 
             if ('mouseX' in parsedMessage) {
@@ -189,7 +189,7 @@ class WebsocketService {
         var number = stub.number;
 
         return function() {
-            console.log("deleting stub IP " + this._socket.remoteAddress);
+            console.log(`deleting stub IP ${this._socket.remoteAddress}`);
             self.IPs.delete(this._socket.remoteAddress);
             delete self.gamemechanics.context.players[number];
         }
@@ -203,9 +203,9 @@ class WebsocketService {
                 if (player.body.inGameType == "player") {
                     self.gamemechanics.recyclebin.prepareToDelete(player.body);
                 }
-                console.log('player exited ' + player.body.number);
+                console.log(`player exited ${player.body.number}`);
             } else {
-                console.log('player lost ' + player.body.number);
+                console.log(`player lost ${player.body.number}`);
             }
         }
     }
@@ -214,9 +214,9 @@ class WebsocketService {
         var player = playerCurrent;
         var self = this;
         return function(event) {
-            console.log('player disconnected ' + player.body.number);
+            console.log(`player disconnected ${player.body.number}`);
             
-            console.log("deleting player IP " + this._socket.remoteAddress);
+            console.log(`deleting player IP ${this._socket.remoteAddress}`);
             self.IPs.delete(this._socket.remoteAddress);
             
             if (player.body.inGameType == "player") {

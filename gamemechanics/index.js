@@ -52,7 +52,7 @@ class GameMechanics {
 
         var quantity = garbageDensity * Math.PI * diameter * diameter / 4;
 
-        console.log("creating " + quantity + " elements");
+        console.log(`creating ${quantity} elements`);
 
         //this.createRandomGarbage(quantity);
         this.createPortionsOfGarbage(quantity);

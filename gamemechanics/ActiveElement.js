@@ -165,7 +165,7 @@ class ActiveElement extends basicParticle {
         if (playerIndex > -1) {
             delete playersArray[playerIndex];
         } else {
-            Util_tools.handleError("garbagifying garbage " + body.id);
+            Util_tools.handleError(`garbagifying garbage ${this.body.id}`);
         }
     }
 

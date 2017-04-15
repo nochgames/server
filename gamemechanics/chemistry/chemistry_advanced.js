@@ -143,12 +143,12 @@ class ChemistryAdvanced {
 
         if (bodyA.inGameType == 'garbage') {
 
-            if (bodyA.chemicalParent) console.log("id " + bodyA.chemicalParent.id);
+            if (bodyA.chemicalParent) console.log(`id ${bodyA.chemicalParent.id}`);
             if (bodyA.chemicalChildren)
                 console.log(bodyA.chemicalChildren.map(child => {
                     return child.id
                 }));
-            Util_tools.handleError("id is considered player, but is garbage: " + bodyA.id, false);
+            Util_tools.handleError(`id is considered player, but is garbage: ${bodyA.id}`, false);
         }
 
         if (bodyA.getFreeBonds() && bodyB.getFreeBonds()) {
@@ -178,7 +178,7 @@ class ChemistryAdvanced {
 
     isImpossible(body) {
         if (body.energy < 0 && body.chemicalBonds == 0) {
-            Util_tools.handleError("Body with negative energy has no bonds. id:" + body.id);
+            Util_tools.handleError(`Body with negative energy has no bonds. id: ${body.id}`);
         }
         return body.chemicalBonds > body.elValency ||
             this.calculateEnergy(body) > body.energy;
