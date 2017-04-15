@@ -15,80 +15,79 @@ var Engine = Matter.Engine,
     Composite = Matter.Composite;
 
 
-var CollisionHandler = function(context) {
-    this.context = context;
+class CollisionHandler {
+    constructor(context) {
+        this.context = context;
 
-    Matter.Events.on(context.engine, 'collisionStart', event => {
-        var pairs = event.pairs;
-        for (let i = 0; i < pairs.length; i++) {
-            var bodyA = pairs[i].bodyA;
-            var bodyB = pairs[i].bodyB;
+        Matter.Events.on(context.engine, 'collisionStart', event => {
+            var pairs = event.pairs;
+            for (let i = 0; i < pairs.length; i++) {
+                var bodyA = pairs[i].bodyA;
+                var bodyB = pairs[i].bodyB;
 
-            if (bodyA.collisionFilter.mask == 8 ||
-                bodyB.collisionFilter.mask == 8) {
-                //console.log("Same body is processed again");
-                continue;
+                if (bodyA.collisionFilter.mask == 8 ||
+                    bodyB.collisionFilter.mask == 8) {
+                    //console.log("Same body is processed again");
+                    continue;
+                }
+
+                if ((bodyA.inGameType  == "player" ||
+                    bodyA.inGameType  == "playerPart") &&
+                    bodyB.inGameType  == "garbage") {
+                    this.collideWithGarbage(bodyA, bodyB);
+                } else if (bodyA.inGameType  == "garbage" &&
+                    (bodyB.inGameType  == "player" ||
+                    bodyB.inGameType  == "playerPart")) {
+                    this.collideWithGarbage(bodyB, bodyA);
+                } else if (bodyA.inGameType  == "p" &&
+                    (bodyB.inGameType  == "player" ||
+                    bodyB.inGameType  == "playerPart" ||
+                    bodyB.inGameType  == "garbage")) {
+                    this.collideWithProton(bodyB, bodyA);
+                } else if (bodyB.inGameType  == "p" &&
+                    (bodyA.inGameType  == "player"||
+                    bodyA.inGameType  == "playerPart" ||
+                    bodyA.inGameType  == "garbage")) {
+                    this.collideWithProton(bodyA, bodyB);
+                } else if (bodyA.inGameType  == "ph" &&
+                    (bodyB.inGameType  == "player" ||
+                    bodyB.inGameType  == "playerPart" ||
+                    bodyB.inGameType  == "garbage")) {
+                    this.collideWithPhoton(bodyB, bodyA);
+                } else if (bodyB.inGameType  == "ph" &&
+                    (bodyA.inGameType  == "player"||
+                    bodyA.inGameType  == "playerPart" ||
+                    bodyA.inGameType  == "garbage")) {
+                    this.collideWithPhoton(bodyA, bodyB);
+                } else if (bodyB.inGameType  == "player" &&
+                    bodyA.inGameType  == "player" ||
+                    bodyB.inGameType  == "player" &&
+                    bodyA.inGameType  == "playerPart" ||
+                    bodyB.inGameType  == "playerPart" &&
+                    bodyA.inGameType  == "player" ||
+                    bodyB.inGameType  == "playerPart" &&
+                    bodyA.inGameType  == "playerPart") {
+                    this.collidePVP(bodyA, bodyB);
+                } else if (bodyA.inGameType == "n" &&
+                    (bodyB.inGameType == "player" ||
+                    bodyB.inGameType == "garbage")) {
+                    this.collideWithNeutron(bodyB, bodyA);
+                } else if (bodyB.inGameType == "n" &&
+                    (bodyA.inGameType == "player" ||
+                    bodyA.inGameType == "garbage")) {
+                    this.collideWithNeutron(bodyA, bodyB);
+                } else if (config.game.map.deadlyBorder &&
+                    bodyA.inGameType == "Border") {
+                    this.collideWithBorder(bodyB);
+                } else if (config.game.map.deadlyBorder &&
+                    bodyB.inGameType == "Border") {
+                    this.collideWithBorder(bodyA);
+                }
             }
+        });
+    }
 
-            if ((bodyA.inGameType  == "player" ||
-                bodyA.inGameType  == "playerPart") &&
-                bodyB.inGameType  == "garbage") {
-                this.collideWithGarbage(bodyA, bodyB);
-            } else if (bodyA.inGameType  == "garbage" &&
-                (bodyB.inGameType  == "player" ||
-                bodyB.inGameType  == "playerPart")) {
-                this.collideWithGarbage(bodyB, bodyA);
-            } else if (bodyA.inGameType  == "p" &&
-                (bodyB.inGameType  == "player" ||
-                bodyB.inGameType  == "playerPart" ||
-                bodyB.inGameType  == "garbage")) {
-                this.collideWithProton(bodyB, bodyA);
-            } else if (bodyB.inGameType  == "p" &&
-                (bodyA.inGameType  == "player"||
-                bodyA.inGameType  == "playerPart" ||
-                bodyA.inGameType  == "garbage")) {
-                this.collideWithProton(bodyA, bodyB);
-            } else if (bodyA.inGameType  == "ph" &&
-                (bodyB.inGameType  == "player" ||
-                bodyB.inGameType  == "playerPart" ||
-                bodyB.inGameType  == "garbage")) {
-                this.collideWithPhoton(bodyB, bodyA);
-            } else if (bodyB.inGameType  == "ph" &&
-                (bodyA.inGameType  == "player"||
-                bodyA.inGameType  == "playerPart" ||
-                bodyA.inGameType  == "garbage")) {
-                this.collideWithPhoton(bodyA, bodyB);
-            } else if (bodyB.inGameType  == "player" &&
-                bodyA.inGameType  == "player" ||
-                bodyB.inGameType  == "player" &&
-                bodyA.inGameType  == "playerPart" ||
-                bodyB.inGameType  == "playerPart" &&
-                bodyA.inGameType  == "player" ||
-                bodyB.inGameType  == "playerPart" &&
-                bodyA.inGameType  == "playerPart") {
-                this.collidePVP(bodyA, bodyB);
-            } else if (bodyA.inGameType == "n" &&
-                (bodyB.inGameType == "player" ||
-                bodyB.inGameType == "garbage")) {
-                this.collideWithNeutron(bodyB, bodyA);
-            } else if (bodyB.inGameType == "n" &&
-                (bodyA.inGameType == "player" ||
-                bodyA.inGameType == "garbage")) {
-                this.collideWithNeutron(bodyA, bodyB);
-            } else if (config.game.map.deadlyBorder &&
-                bodyA.inGameType == "Border") {
-                this.collideWithBorder(bodyB);
-            } else if (config.game.map.deadlyBorder &&
-                bodyB.inGameType == "Border") {
-                this.collideWithBorder(bodyA);
-            }
-        }
-    });
-};
-
-CollisionHandler.prototype = {
-
-    createBond: function(playerBody, garbageBody) {
+    createBond(playerBody, garbageBody) {
 
         ++playerBody.chemicalBonds;
         ++garbageBody.chemicalBonds;
@@ -115,9 +114,9 @@ CollisionHandler.prototype = {
         player.recalculateMass();
         this.context.getMainObject(garbageBody).markAsPlayer(playerBody);
         this.context.getMainObject(playerBody).connectBody(garbageBody, this.createFinalCreateBond());
-    },
+    }
 
-    createFinalCreateBond: function() {
+    createFinalCreateBond() {
 
         function createBondConstraint(_bodyA, _bodyB, _stiffness) {
             return Matter.Constraint.create({bodyA: _bodyA, bodyB: _bodyB,
@@ -172,21 +171,21 @@ CollisionHandler.prototype = {
             context.playersEmitter.emit('bond created',
                 {bc1: playerBody, bc2: garbageBody, p: context.getPlayer(playerBody)});
         }
-    },
+    }
 
-    link: function(child, parent) {
+    link(child, parent) {
         Util_tools.addToArray(parent.chemicalChildren, child);
         child.chemicalParent = parent;
-    },
+    }
 
-    connectGarbageToPlayer: function(playerBody, garbageBody) {
+    connectGarbageToPlayer(playerBody, garbageBody) {
         if (config.game.doReverseGarbage)
             this.context.getMainObject(garbageBody).reverse();
         this.context.getMainObject(garbageBody).prepareForBond();
         this.createBond(playerBody, garbageBody);
-    },
+    }
 
-    connectPlayers: function(bodyA, bodyB) {
+    connectPlayers(bodyA, bodyB) {
 
         var massA = this.context.getPlayer(bodyA).body.realMass;
         var massB = this.context.getPlayer(bodyB).body.realMass;
@@ -212,9 +211,9 @@ CollisionHandler.prototype = {
         }
 
         this.createBond(playerBody, garbageBody);
-    },
+    }
 
-    collideWithProton: function(elementBody, protonBody) {
+    collideWithProton(elementBody, protonBody) {
 
         this.context.getMainObject(elementBody).changeCharge(1, this.context.engine, this.context.freeProtons);
         this.context.websocketservice.sendEverybody(
@@ -222,16 +221,16 @@ CollisionHandler.prototype = {
         this.context.playersEmitter.emit('particle died', { id: protonBody.id,
             playersWhoSee: protonBody.playersWhoSee });
         this.context.recyclebin.prepareToDelete(protonBody);
-    },
+    }
 
-    collideWithPhoton: function(elementBody, photonBody) {
+    collideWithPhoton(elementBody, photonBody) {
         var momentum = this.calculateMomentum(elementBody, photonBody);
 
         this.context.getMainObject(elementBody).
         checkDecoupling(momentum, this.context.engine);
-    },
+    }
 
-    collideWithNeutron: function(elementBody, neutronBody) {
+    collideWithNeutron(elementBody, neutronBody) {
 
         if (Math.sqrt(neutronBody.velocity.x * neutronBody.velocity.x +
                 neutronBody.velocity.y * neutronBody.velocity.y) < 7) {
@@ -240,9 +239,9 @@ CollisionHandler.prototype = {
             this.context.recyclebin.prepareToDelete(neutronBody);
             ++elementBody.mass;
         }
-    },
+    }
 
-    collideWithBorder: function(body) {
+    collideWithBorder(body) {
         if (body.inGameType == "player") {
             this.context.playersEmitter.emit('player died', { player: this.context.getPlayer(body) });
             this.context.players[body.number].die(this.context.engine);
@@ -254,9 +253,9 @@ CollisionHandler.prototype = {
             this.context.playersEmitter.emit('particle died', { id: body.id,
                 playersWhoSee: body.playersWhoSee });
         }
-    },
+    }
 
-    collideWithGarbage: function(playerBody, garbageBody) {
+    collideWithGarbage(playerBody, garbageBody) {
 
         let bodyToConnect = this.context.chemistry
             .findBodyToConnect(playerBody, garbageBody);
@@ -291,9 +290,9 @@ CollisionHandler.prototype = {
             this.context.getMainObject(garbageBody).
             checkDecoupling(momentum, this.context.engine);
         }
-    },
+    }
 
-    collidePVP: function(playerBodyA, playerBodyB) {
+    collidePVP(playerBodyA, playerBodyB) {
 
         if (playerBodyA.playerNumber == playerBodyB.playerNumber) return;
         if (this.context.chemistry.checkConnectingPossibility(playerBodyA, playerBodyB)) {
@@ -306,13 +305,13 @@ CollisionHandler.prototype = {
             this.context.getMainObject(playerBodyB).
             checkDecoupling(momentum, this.context.engine);
         }
-    },
+    }
 
-    calculateMomentum: function(bodyA, bodyB) {
+    calculateMomentum(bodyA, bodyB) {
         return (bodyA.mass + bodyB.mass) * Math.sqrt((bodyA.velocity.x - bodyB.velocity.x) *
                 (bodyA.velocity.x - bodyB.velocity.x) + (bodyA.velocity.y - bodyB.velocity.y) *
                 (bodyA.velocity.y - bodyB.velocity.y));
     }
-};
+}
 
 module.exports = CollisionHandler;

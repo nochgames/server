@@ -2,19 +2,19 @@
  * Created by fatman on 01/02/16.
  */
 
-var Context = function(engine, playersEmitter, recyclebin, websocketservice) {
-    this.players = [];
-    this.garbage = [];
-    this.recyclebin = recyclebin;
-    this.freeProtons = [];
-    this.garbageActive = [];
-    this.playersEmitter = playersEmitter;
-    this.engine = engine;
-    this.websocketservice = websocketservice;
-};
+class Context {
+    constructor(engine, playersEmitter, recyclebin, websocketservice) {
+        this.players = [];
+        this.garbage = [];
+        this.recyclebin = recyclebin;
+        this.freeProtons = [];
+        this.garbageActive = [];
+        this.playersEmitter = playersEmitter;
+        this.engine = engine;
+        this.websocketservice = websocketservice;
+    }
 
-Context.prototype = {
-    getArray: function(body) {
+    getArray(body) {
         switch (body.inGameType) {
             case "player":
                 return this.players;
@@ -30,9 +30,9 @@ Context.prototype = {
             case "ph":
                 return this.freeProtons;
         }
-    },
+    }
 
-    getPlayer: function(body) {
+    getPlayer(body) {
         var player = this.players[body.playerNumber];
         if (player !== undefined) {
             return player;
@@ -46,9 +46,9 @@ Context.prototype = {
                     }
                     })}`);
         }
-    },
+    }
 
-    getMainObject: function(body) {
+    getMainObject(body) {
         switch (body.inGameType) {
             case "player":
                 return this.players[body.number];
@@ -69,16 +69,16 @@ Context.prototype = {
                     "\nid: " + body.id + "\ntype: " + body.inGameType +
                     "\ndeleted ids: " + this.recyclebin.deletedIds);
         }
-    },
+    }
 
-    addToArray: function(array, obj) {
+    addToArray(array, obj) {
         var i = 0;
         while(array[i]) ++i;
         array[i] = obj;
         return i;
-    },
+    }
 
-    inScreen: function(object, tolerance) {
+    inScreen(object, tolerance) {
         if (!tolerance) tolerance = 0;
         return (object.body.position.x - object.body.circleRadius < this.body.position.x +
         this.resolution.width / this.body.coefficient / 2 *
@@ -93,6 +93,6 @@ Context.prototype = {
         this.resolution.height / this.body.coefficient / 2 *
         1366 / this.resolution.width - tolerance);
     }
-};
+}
 
 module.exports = Context;

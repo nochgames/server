@@ -8,23 +8,24 @@ var Util_tools = require("../util_tools");
 var Matter = require('matter-js/build/matter.js');
 var World = Matter.World;
 
-var RecycleBin = function(context) {
-    this.context = context;
-    this.ghosts = [];
-    this.deletedIds = [];
-    this.deletedGabageNumbers = [];
-};
+class RecycleBin {
 
-RecycleBin.prototype = {
-    add: function(gameObject) {
+    constructor(context) {
+        this.context = context;
+        this.ghosts = [];
+        this.deletedIds = [];
+        this.deletedGabageNumbers = [];
+    }
+
+    add(gameObject) {
         this.ghosts.add(gameObject);
-    },
+    }
 
-    restore: function(gameObject) {
+    restore(gameObject) {
         this.ghosts.restore(gameObject);
-    },
+    }
 
-    empty: function() {
+    empty() {
         for (let i = 0; i < this.ghosts.length; ++i) {
             if (!this.ghosts[i]) continue;
             var ghost = this.ghosts[i];
@@ -64,9 +65,9 @@ RecycleBin.prototype = {
                                     ${ghost.id}, inGameType: ${ghost.inGameType}`);
             }
         }
-    },
+    }
 
-    deleteProperly: function(body) {
+    deleteProperly(body) {
         if (body.inGameType == "p") {
             clearTimeout(body.timerId1);
             clearTimeout(body.timerId2);
@@ -78,13 +79,13 @@ RecycleBin.prototype = {
         World.remove(this.context.engine.world, body);
 
         delete this.context.getArray(body)[body.number];
-    },
+    }
 
-    prepareToDelete: function(body) {
+    prepareToDelete(body) {
         if (this.ghosts.indexOf(body) == -1) {
             Util_tools.addToArray(this.ghosts, body);
         }
     }
-};
+}
 
 module.exports = RecycleBin;
