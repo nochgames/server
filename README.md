@@ -10,7 +10,7 @@
 
 #### System software requirements
 
-> Node.js 4.6.1
+> Node.js 6+
 
 
 ### Quickstart
