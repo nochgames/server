@@ -24,6 +24,8 @@ class ActiveElement extends basicParticle {
 
         super(position, engine, elem, emitter, chemistry);
 
+        this.moleculeId = elem;
+
         this.websocketservice = websocketservice;
 
         this.kills = 0;
@@ -43,6 +45,30 @@ class ActiveElement extends basicParticle {
         this.body.multiplier =  Math.sqrt(this.body.realRadius);
         this.resolution = { width: 0, height: 0 };
         this.body.coefficient = 1;
+    }
+
+    addToMoleculeId(elem) {
+        const delim = config.game.chemistry.elementDelimiter;
+        this.moleculeId =
+            this.moleculeId.split(delim).concat(elem).sort().join(delim);
+        //console.log(`added ${elem}, moleculeId ${this.moleculeId}`);
+    }
+
+    deleteFromMoleculeId(elem) {
+        const delim = config.game.chemistry.elementDelimiter;
+        let elements = this.moleculeId.split(delim);
+        let index = elements.indexOf(elem);
+        if (index != -1) {
+            elements.splice(index, 1);
+        }
+        else {
+            Util_tools.handleError(
+                `trying to delete ${elem} from player 
+                ${this.body.player.body.id}, 
+                but he doesn't have it: ${this.moleculeId}`, false)
+        }
+        this.moleculeId = elements.join(delim);
+        //console.log(`deleted ${elem}, moleculeId ${this.moleculeId}`);
     }
 
     makeMassCalc() {
@@ -168,6 +194,8 @@ class ActiveElement extends basicParticle {
             Util_tools.handleError(`garbagifying garbage ${this.body.id}`);
         }
     }
+
+
 
     applyVelocity(mx, my) {
 
