@@ -5,7 +5,7 @@
   },
 
   "game": {
-    "botsQuantity": 20,
+    "botsQuantity": 0,
 
     "defaultElement": "C",
 
@@ -14,6 +14,12 @@
     "garbageDensity": 0.0000332,
 
     "chemistry": {
+      "useLibrary": true,
+
+      "elementDelimiter": "|",
+
+      "libraryFile": "library3",
+
       "elements": [ "H", "He", "Li", "Be",
             "B", "C", "N", "O", "F", "Ne"],
       "C": {

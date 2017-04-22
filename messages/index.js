@@ -58,7 +58,7 @@ var Messages = {
         return message;
     },
 
-    newBondOnScreen: function(firstBondedBodyId, secondBondedBodyId) {
+    newBondOnScreen: function(firstBondedBodyId, secondBondedBodyId, type) {
 
         let first = firstBondedBodyId < secondBondedBodyId ?
                     firstBondedBodyId : secondBondedBodyId;
@@ -66,7 +66,8 @@ var Messages = {
                     firstBondedBodyId : secondBondedBodyId;
 
         return {[API_NOCH.getCode("first id in bond")]: first,
-                [API_NOCH.getCode("second id in bond")]: second }
+                [API_NOCH.getCode("second id in bond")]: second,
+                [API_NOCH.getCode("bond type")]: type}
     },
 
     deleteParticle: function(idToDelete) {

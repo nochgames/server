@@ -31,5 +31,6 @@
   "availability": "av",
   "scoreBoard": "sb",
   "border height": "bh",
-  "border length": "bl"
+  "border length": "bl",
+  "bond type": "t"
 }

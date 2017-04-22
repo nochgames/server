@@ -4,9 +4,10 @@
 
 'use strict';
 
-var Util_tools = require("../../util_tools");
-let Messages = require("../../messages");
-let Matter = require('matter-js/build/matter.js');
+const Util_tools = require("../../util_tools");
+const Messages = require("../../messages");
+const Matter = require('matter-js/build/matter.js');
+const MolecularLibrary = require('./MolecularLibrary');
 
 var config = require('config-node');
 
@@ -19,6 +20,9 @@ let Engine = Matter.Engine,
 class ChemistryAdvanced {
 
     constructor(context) {
+        if (config.game.chemistry.useLibrary)
+            this.library = new MolecularLibrary();
+
         this.context = context;
         var elements = config.game.chemistry.elements;
         this.testObjects = [];
@@ -128,6 +132,7 @@ class ChemistryAdvanced {
     }
 
     checkConnectingPossibilityGeneral(player, garbageBody, checkFunction) {
+        if (config.game.chemistry.useLibrary && !this.library.has(player.moleculeId.split('|').concat(garbageBody.element).sort().join('|'))) return null;
         return player.resultDST(player.body, checkFunction, garbageBody)
     }
 

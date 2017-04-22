@@ -178,20 +178,25 @@ class BasicParticle {
             }
 
 
-            if (node.chemicalParent.chemicalBonds) {
-                --node.chemicalParent.chemicalBonds;
+            if (node.chemicalParent.chemicalBonds && node.bondType) {
+                node.chemicalParent.chemicalBonds -= node.bondType;
+                console.log(node.chemicalParent.chemicalBonds);
             }
             node.parentPosition = node.chemicalParent.position;
             delete node.chemicalParent;
         }
 
-        if (node.player) {
+        if (node.player.body != node) {
             node.player.body.realMass -= node.mass;
+            node.player.deleteFromMoleculeId(node.element);
+            //console.log(node.player.moleculeId);
         }
 
         node.collisionFilter.group = 0;
-        if (node.chemicalBonds) {
-            --node.chemicalBonds;
+        if (node.chemicalBonds && node.bondType) {
+            node.chemicalBonds -= node.bondType;
+            console.log(node.chemicalBonds);
+            node.bondType = 0;
         }
 
         node.emitter.emit('became garbage', { garbageBody: node });
@@ -202,6 +207,65 @@ class BasicParticle {
             node.inGameType = "garbage";
             node.playerNumber = -1175;
         }
+    }
+
+    connectBody(garbageBody, finalCreateBond, type) {
+        var i = 0;
+        var N = 30;     // Number of iterations
+
+        this.body.player.addToMoleculeId(garbageBody.element);
+
+        garbageBody.collisionFilter.mask = 0x0008;      // turn off collisions
+
+        var currentAngle = Geometry.findAngle(this.body.position,
+            garbageBody.position, this.body.angle);
+        var angle = this.getClosestAngle(currentAngle);
+        garbageBody.occupiedAngle = angle;
+
+        var realAngle = angle;
+
+        if (currentAngle > 3 * Math.PI / 2 && angle == 0) realAngle = 2 * Math.PI;
+        var difference = realAngle - currentAngle;
+        if (Math.abs(difference) > Math.PI) {
+            difference = difference < 0 ? 2 * Math.PI +
+                difference : difference - 2 * Math.PI;
+        }
+
+        N = Math.abs(Math.round(N / Math.PI / 2 * difference)) * 2 + 1;
+        var step = difference / N;
+
+        var self = this;
+        garbageBody.intervalID = setInterval(function () {
+            var pos1 = self.body.position;
+
+            var ADDITIONAL_LENGTH = 20;
+
+            var delta = {
+                x: ((self.body.circleRadius + garbageBody.circleRadius
+                + ADDITIONAL_LENGTH)
+                * Math.cos(currentAngle + step * i + self.body.angle)
+                + pos1.x - garbageBody.position.x) /*/ (N - i)*/,
+                y: ((self.body.circleRadius + garbageBody.circleRadius
+                + ADDITIONAL_LENGTH)
+                * Math.sin(currentAngle + step * i + self.body.angle)
+                + pos1.y - garbageBody.position.y) /*/ (N - i)*/
+            };
+
+            Body.translate(garbageBody, {
+                x: delta.x,
+                y: delta.y });
+
+            if (i++ === N) {
+                clearInterval(garbageBody.intervalID);
+
+                var garbageAngle = self.correctParentBond.call(self, garbageBody, self.body);
+
+                garbageBody.occupiedAngle = null;
+                if (finalCreateBond) {
+                    finalCreateBond(self.body, garbageBody, angle, garbageAngle, type);
+                }
+            }
+        }, 30);
     }
 
     setElement(elem) {
@@ -467,63 +531,6 @@ class BasicParticle {
         if (this.body.chemicalBonds) {
             this.correctBondAngles(engine);
         }
-    }
-
-    connectBody(garbageBody, finalCreateBond) {
-        var i = 0;
-        var N = 30;     // Number of iterations
-
-        garbageBody.collisionFilter.mask = 0x0008;      // turn off collisions
-
-        var currentAngle = Geometry.findAngle(this.body.position,
-            garbageBody.position, this.body.angle);
-        var angle = this.getClosestAngle(currentAngle);
-        garbageBody.occupiedAngle = angle;
-
-        var realAngle = angle;
-
-        if (currentAngle > 3 * Math.PI / 2 && angle == 0) realAngle = 2 * Math.PI;
-        var difference = realAngle - currentAngle;
-        if (Math.abs(difference) > Math.PI) {
-            difference = difference < 0 ? 2 * Math.PI +
-            difference : difference - 2 * Math.PI;
-        }
-
-        N = Math.abs(Math.round(N / Math.PI / 2 * difference)) * 2 + 1;
-        var step = difference / N;
-
-        var self = this;
-        garbageBody.intervalID = setInterval(function () {
-            var pos1 = self.body.position;
-
-            var ADDITIONAL_LENGTH = 20;
-
-            var delta = {
-                x: ((self.body.circleRadius + garbageBody.circleRadius
-                + ADDITIONAL_LENGTH)
-                * Math.cos(currentAngle + step * i + self.body.angle)
-                + pos1.x - garbageBody.position.x) /*/ (N - i)*/,
-                y: ((self.body.circleRadius + garbageBody.circleRadius
-                + ADDITIONAL_LENGTH)
-                * Math.sin(currentAngle + step * i + self.body.angle)
-                + pos1.y - garbageBody.position.y) /*/ (N - i)*/
-            };
-
-            Body.translate(garbageBody, {
-                x: delta.x,
-                y: delta.y });
-
-            if (i++ === N) {
-                clearInterval(garbageBody.intervalID);
-
-                var garbageAngle = self.correctParentBond.call(self, garbageBody, self.body);
-
-                garbageBody.occupiedAngle = null;
-                if (finalCreateBond) {
-                    finalCreateBond(self.body, garbageBody, angle, garbageAngle);
-                }
-            }
-        }, 30);
     }
 
     correctParentBond(garbageBody, parentBody) {

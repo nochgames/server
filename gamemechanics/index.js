@@ -314,12 +314,14 @@ class GameMechanics {
         for (let i = 0; i < object.body.chemicalChildren.length; ++i) {
             if (!object.body.chemicalChildren[i]) continue;
             this.context.websocketservice.sendToPlayer(
-                Messages.newBondOnScreen(object.body.id, object.body.chemicalChildren[i].id),
+                Messages.newBondOnScreen(object.body.id,
+                    object.body.chemicalChildren[i].id, object.body.chemicalChildren[i].bondType),
                 this.context.players[playerNumber]);
         }
         if (object.body.chemicalParent) {
             this.context.websocketservice.sendToPlayer(
-                Messages.newBondOnScreen(object.body.id, object.body.chemicalParent.id),
+                Messages.newBondOnScreen(object.body.id,
+                    object.body.chemicalParent.id, object.body.bondType),
                 this.context.players[playerNumber]);
         }
     }
@@ -469,7 +471,7 @@ class GameMechanics {
             let playersWhoSee = event.bc1.playersWhoSee.length > event.bc2.playersWhoSee.length ?
                 event.bc1.playersWhoSee : event.bc2.playersWhoSee;
             this.context.websocketservice.sendSpecificPlayers(
-                Messages.newBondOnScreen(event.bc1.id, event.bc2.id),
+                Messages.newBondOnScreen(event.bc1.id, event.bc2.id, event.t),
                 playersWhoSee);
 
             let player = this.context.players.indexOf(event.p);
