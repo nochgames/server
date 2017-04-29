@@ -96,6 +96,8 @@ class CollisionHandler {
         playerBody.chemicalBonds += freeBonds;
         garbageBody.chemicalBonds += freeBonds;
 
+        garbageBody.bondType = freeBonds;
+
         this.context.chemistry.subtractBondEnergy(playerBody, garbageBody);
 
         this.link(garbageBody, playerBody);
@@ -117,7 +119,7 @@ class CollisionHandler {
 
         player.recalculateMass();
         this.context.getMainObject(garbageBody).markAsPlayer(playerBody);
-        this.context.getMainObject(playerBody).connectBody(garbageBody, this.createFinalCreateBond(), freeBonds);
+        this.context.getMainObject(playerBody).connectBody(garbageBody, this.createFinalCreateBond());
     }
 
     createFinalCreateBond() {
@@ -130,7 +132,7 @@ class CollisionHandler {
 
         var context = this.context;
 
-        return function(playerBody, garbageBody, angle1, angle2, type) {
+        return function(playerBody, garbageBody, angle1, angle2) {
 
             garbageBody.collisionFilter.mask = 0x0001;
 
@@ -167,14 +169,13 @@ class CollisionHandler {
             garbageBody.constraint1 = constraintA;
             garbageBody.constraint2 = constraintB;
 
-            garbageBody.bondType = type;
             garbageBody.constraint1.chemicalAngle = angle1;
             garbageBody.constraint2.chemicalAngle = angle2;
 
             World.add(context.engine.world, [constraintA, constraintB]);
 
             context.playersEmitter.emit('bond created',
-                {bc1: playerBody, bc2: garbageBody, p: context.getPlayer(playerBody), t: type});
+                {bc1: playerBody, bc2: garbageBody, p: context.getPlayer(playerBody), t: garbageBody.bondType});
         }
     }
 

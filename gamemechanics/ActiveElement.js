@@ -65,7 +65,7 @@ class ActiveElement extends basicParticle {
             Util_tools.handleError(
                 `trying to delete ${elem} from player 
                 ${this.body.player.body.id}, 
-                but he doesn't have it: ${this.moleculeId}`, false)
+                but he doesn't have it: ${this.moleculeId}`)
         }
         this.moleculeId = elements.join(delim);
         //console.log(`deleted ${elem}, moleculeId ${this.moleculeId}`);

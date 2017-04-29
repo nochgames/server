@@ -185,15 +185,18 @@ class BasicParticle {
             delete node.chemicalParent;
         }
 
-        if (node.player.body != node) {
+        if (node.player.body.id != node.id) {
             node.player.body.realMass -= node.mass;
+            if (node.inGameType == "garbage") {
+                Util_tools.handleError("check decoupling called on garbage: id " + node.id)
+            }
             node.player.deleteFromMoleculeId(node.element);
+            node.player = null;
         }
 
         node.collisionFilter.group = 0;
         if (node.chemicalBonds && node.bondType) {
             node.chemicalBonds -= node.bondType;
-            console.log(node.chemicalBonds);
             node.bondType = 0;
         }
 
@@ -207,7 +210,7 @@ class BasicParticle {
         }
     }
 
-    connectBody(garbageBody, finalCreateBond, type) {
+    connectBody(garbageBody, finalCreateBond) {
         var i = 0;
         var N = 30;     // Number of iterations
 
@@ -260,7 +263,7 @@ class BasicParticle {
 
                 garbageBody.occupiedAngle = null;
                 if (finalCreateBond) {
-                    finalCreateBond(self.body, garbageBody, angle, garbageAngle, type);
+                    finalCreateBond(self.body, garbageBody, angle, garbageAngle);
                 }
             }
         }, 30);
@@ -437,9 +440,10 @@ class BasicParticle {
                 //console.log("possible angle " + bondAngles[i].angle);
             }
         }
-        this.body.bondAngles[difference[0].index].available = false;
+        let angle = this.body.bondAngles[difference[0].index];
+        angle.available = false;
         //console.log("closest angle " + this.body.bondAngles[difference[0].index].angle);
-        return this.body.bondAngles[difference[0].index].angle;
+        return angle.angle;
     }
 
     freeBondAngle(angle) {
