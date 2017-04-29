@@ -178,9 +178,8 @@ class BasicParticle {
             }
 
 
-            if (node.chemicalParent.chemicalBonds && node.bondType) {
+            if (node.chemicalParent.chemicalBonds) {
                 node.chemicalParent.chemicalBonds -= node.bondType;
-                console.log(node.chemicalParent.chemicalBonds);
             }
             node.parentPosition = node.chemicalParent.position;
             delete node.chemicalParent;
@@ -189,7 +188,6 @@ class BasicParticle {
         if (node.player.body != node) {
             node.player.body.realMass -= node.mass;
             node.player.deleteFromMoleculeId(node.element);
-            //console.log(node.player.moleculeId);
         }
 
         node.collisionFilter.group = 0;
