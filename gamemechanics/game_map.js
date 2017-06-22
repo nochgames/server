@@ -17,7 +17,6 @@ class Map {
     constructor(engine) {
         this.engine = engine;
         this.border = [];
-        this.radius = config.game.map.gameDiameter / 2;
 
         this.radius = config.game.map.gameDiameter / 2;
 
