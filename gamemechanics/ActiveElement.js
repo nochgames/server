@@ -48,20 +48,18 @@ class ActiveElement extends basicParticle {
     }
 
     addToMoleculeId(elem) {
+        //console.log(`molecule id ${this.moleculeId}`);
         const delim = config.game.chemistry.elementDelimiter;
         this.moleculeId =
-            this.moleculeId.split(delim).concat(elem).sort().join(delim);
+            this.moleculeId.split(delim).concat(elem.split(delim)).sort().join(delim);
         //console.log(`added ${elem}, moleculeId ${this.moleculeId}`);
     }
 
     deleteFromMoleculeId(elem) {
         const delim = config.game.chemistry.elementDelimiter;
         let elements = this.moleculeId.split(delim);
-        let index = elements.indexOf(elem);
-        if (index != -1) {
-            elements.splice(index, 1);
-        }
-        else {
+        if(!Util_tools.deleteFromArray(elements, elem))
+        {
             Util_tools.handleError(
                 `trying to delete ${elem} from player 
                 ${this.body.player.body.id}, 
@@ -217,7 +215,7 @@ class ActiveElement extends basicParticle {
 
         var pos1 = this.body.position;
 
-        //TODO: make players move properly
+        //TODO: make players wonder properly
         this.traversDST(this.body, function(body) {
             body.force = { x: 0, y: 0 };
             body.torque = 0;

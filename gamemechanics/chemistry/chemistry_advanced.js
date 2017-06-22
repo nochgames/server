@@ -132,7 +132,10 @@ class ChemistryAdvanced {
     }
 
     checkConnectingPossibilityGeneral(player, garbageBody, checkFunction) {
-        if (config.game.chemistry.useLibrary && !this.library.has(player.moleculeId.split('|').concat(garbageBody.element).sort().join('|'))) return null;
+        if (config.game.chemistry.useLibrary && !this.library.has(player.moleculeId.split('|')
+                .concat(garbageBody.element).sort().join('|')))
+            return null;
+
         return player.resultDST(player.body, checkFunction, garbageBody)
     }
 
@@ -156,16 +159,20 @@ class ChemistryAdvanced {
             Util_tools.handleError(`id is considered player, but is garbage: ${bodyA.id}`, false);
         }
 
-        if (bodyA.getFreeBonds() && bodyB.getFreeBonds()) {
+        if ((!config.game.chemistry.dontAddChildrenToConnectingParticles ||
+            config.game.chemistry.dontAddChildrenToConnectingParticles &&
+            bodyA.collisionFilter.mask != 8 && bodyB.collisionFilter.mask != 8) &&
+            bodyA.getFreeBonds() && bodyB.getFreeBonds()) {
             let bond = config.game.chemistry.connections[(
                 [bodyA.element, bodyB.element].sort()).join('')];
 
             if (bond && (bodyA.energy - bond[bodyA.element]) >= 0 &&
                 (bodyB.energy - bond[bodyB.element]) >= 0) {
+                //console.log(`filter ${bodyA.collisionFilter.mask}`);
                 return bodyA;
             }
         }
-        return false;
+        return null;
     }
 
     calculateEnergy(body) {

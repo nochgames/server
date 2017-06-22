@@ -27,7 +27,7 @@ class CollisionHandler {
 
                 if (bodyA.collisionFilter.mask == 8 ||
                     bodyB.collisionFilter.mask == 8) {
-                    //console.log("Same body is processed again");
+                    console.log("Same body is processed again");
                     continue;
                 }
 
@@ -188,25 +188,29 @@ class CollisionHandler {
         if (config.game.doReverseGarbage)
             this.context.getMainObject(garbageBody).reverse();
         this.context.getMainObject(garbageBody).prepareForBond();
+        this.context.getPlayer(playerBody).addToMoleculeId(garbageBody.element);
         this.createBond(playerBody, garbageBody);
     }
 
     connectPlayers(bodyA, bodyB) {
 
-        var massA = this.context.getPlayer(bodyA).body.realMass;
-        var massB = this.context.getPlayer(bodyB).body.realMass;
+        let massA = this.context.getPlayer(bodyA).body.realMass;
+        let massB = this.context.getPlayer(bodyB).body.realMass;
         if (massA == massB) return;
-        var playerBody = massA > massB ? bodyA : bodyB;
-        var garbageBody = massA < massB ? bodyA : bodyB;
+        let playerBody = massA > massB ? bodyA : bodyB;
+        let garbageBody = massA < massB ? bodyA : bodyB;
+
+        let killedPlayer = this.context.getPlayer(garbageBody);
+        let killedPlayerMoleculeId = killedPlayer.moleculeId;
 
         ++this.context.getPlayer(playerBody).kills;
-        this.context.playersEmitter.emit('player died', { player: this.context.getPlayer(garbageBody) });
+        this.context.playersEmitter.emit('player died', { player: killedPlayer });
 
         this.context.playersEmitter.emit('murder', { player: this.context.getPlayer(playerBody) });
 
-        this.context.getPlayer(garbageBody).lose(this.context.engine,
+        killedPlayer.lose(this.context.engine,
             this.context.players, this.context.garbage, playerBody);
-        var exPlayer = this.context.getMainObject(garbageBody).reverseFWD();
+        let exPlayer = this.context.getMainObject(garbageBody).reverseFWD();
 
         if (exPlayer && !exPlayer.chemicalParent) {
             Util_tools.handleError(`reverse failed to add parent to ex player, exPlayer id: ${exPlayer.id}`);
@@ -216,6 +220,8 @@ class CollisionHandler {
             Util_tools.handleError("Reverse did not remove parent");
         }
 
+        this.context.getPlayer(playerBody)
+            .addToMoleculeId(killedPlayerMoleculeId);
         this.createBond(playerBody, garbageBody);
     }
 

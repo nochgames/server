@@ -14,6 +14,7 @@ var Chemistry = require('./chemistry/chemistry_advanced');
 var config = require('config-node');
 var elements = config.game.chemistry.elements;
 var portions = config.game.map.portions;
+var DynamicBot = require('./DynamicBot');
 
 var Engine = Matter.Engine,
     World = Matter.World,
@@ -179,7 +180,7 @@ class GameMechanics {
 
     addBot() {
 
-        let bot = new Bot(
+        let bot = new DynamicBot('Wanderer',
             this.game_map.getRandomPositionInner(),
             this.context.engine, config.game.defaultElement,
             this.context.playersEmitter, this.context.websocketservice,

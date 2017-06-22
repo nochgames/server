@@ -168,7 +168,7 @@ class BasicParticle {
             delete node.chemicalParent.chemicalChildren[
                 node.chemicalParent.chemicalChildren.indexOf(node)];
 
-            if (node.occupiedAngle) {
+            if (node.occupiedAngle != null) {
                 node.chemicalParent.bondAngles.forEach(function(obj) {
                     if (obj.angle == node.occupiedAngle) {
                         obj.available = true;
@@ -185,7 +185,7 @@ class BasicParticle {
             delete node.chemicalParent;
         }
 
-        if (node.player.body.id != node.id) {
+        if (node.player && node.player.body.id != node.id) {
             node.player.body.realMass -= node.mass;
             if (node.inGameType == "garbage") {
                 Util_tools.handleError("check decoupling called on garbage: id " + node.id)
@@ -214,13 +214,11 @@ class BasicParticle {
         var i = 0;
         var N = 30;     // Number of iterations
 
-        this.body.player.addToMoleculeId(garbageBody.element);
-
         garbageBody.collisionFilter.mask = 0x0008;      // turn off collisions
 
         var currentAngle = Geometry.findAngle(this.body.position,
             garbageBody.position, this.body.angle);
-        var angle = this.getClosestAngle(currentAngle);
+        var angle = this.getAngleToConnect(currentAngle, garbageBody);
         garbageBody.occupiedAngle = angle;
 
         var realAngle = angle;
@@ -355,6 +353,7 @@ class BasicParticle {
 
             if (newPlayerBody) {
                 node.playerNumber = newPlayerBody.playerNumber;
+                node.player = newPlayerBody.player;
             }
         });
     }
@@ -364,6 +363,7 @@ class BasicParticle {
 
             node.inGameType = "playerPart";
             node.playerNumber = newPlayerBody.playerNumber;
+            node.player = newPlayerBody.player;
 
             node.emitter.emit('became playerPart', { garbageBody: node });
         });
@@ -375,7 +375,7 @@ class BasicParticle {
 
     reverseFWD() {
         let exPlayer;
-        let prevParent;
+        let prevNode = null;
         let prevConstraint1;
         let prevConstraint2;
         let prevChildren;
@@ -385,19 +385,23 @@ class BasicParticle {
         let isFirst = true;
 
         while (node) {
-            let parent = node;
+            let parent = node.chemicalParent;
             let cons1 = node.constraint1;
             let cons2 = node.constraint2;
             let childeren = node.chemicalChildren;
 
-            if (prevParent) {
-                node.chemecalParent = prevParent;
+            if (prevConstraint2) {
                 node.constraint1 = prevConstraint1;
                 node.constraint2 = prevConstraint2;
                 Util_tools.addToArray(prevChildren, node);
+                if (!Util_tools.deleteFromArray(node.chemicalChildren, prevNode)) {
+                    Util_tools.handleError(`Child is not in parents children id: ${prevNode.id}, parent id ${node.id}`)
+                }
             }
 
-            prevParent = parent;
+            node.chemicalParent = prevNode;
+
+            prevNode = node;
             prevConstraint1 = cons1;
             prevConstraint2 = cons2;
             prevChildren = childeren;
@@ -407,8 +411,8 @@ class BasicParticle {
             } else {
                 isFirst = false;
             }
-
-            node = node.chemecalParent;
+            console.log(`reverse fwd id ${node.id}`);
+            node = parent;
         }
         return exPlayer;
     }
@@ -423,27 +427,124 @@ class BasicParticle {
         }
     }
 
-    getClosestAngle(angle) {
-        //console.log("given angle " + angle);
-        var bondAngles = this.body.bondAngles;
-        var difference = this.body.bondAngles.map(function(obj) {
-            var diff = Math.abs(obj.angle - angle);
-            if (angle > Math.PI / 2 * 3 && obj.angle == 0) diff = 0;
-            if(!obj.available) diff = Infinity;
-            return {"diff": diff,
-                    "index": bondAngles.indexOf(obj)};
-        }).sort(function(a, b) {
-            return a.diff - b.diff;
-        });
-        for (let i = 0; i < bondAngles.length; ++i) {
-            if (bondAngles[i].available) {
-                //console.log("possible angle " + bondAngles[i].angle);
+    getAngleToConnect(angle, secondBody) {
+        let chemicalChildren =
+            this.body.chemicalChildren.filter(child =>
+            {return child && child.id != secondBody.id;});
+        let neighboursNumber = chemicalChildren.length;
+        if (this.body.chemicalParent && this.body.chemicalParent.id != secondBody.id)
+            ++neighboursNumber;
+
+        //console.log(`valency ${this.body.elValency}, neighbours number ${neighboursNumber}`);
+        if (this.body.elValency != 4 || neighboursNumber == 0) {
+            return this.getClosestAngle(angle)
+        }
+
+        let compare;
+        if (secondBody.elValency == 4) {
+            compare = function (first, second) {
+                return first.elValency >= second.elValency;
+            }
+        } else {
+            compare = function (first, second) {
+                return first.elValency <= second.elValency;
             }
         }
-        let angle = this.body.bondAngles[difference[0].index];
-        angle.available = false;
+
+        let child = null;
+        if (this.body.chemicalChildren.length) {
+            child = chemicalChildren.sort(compare)[0];
+        }
+
+        let parent = this.body.chemicalParent;
+
+        let oppositeAngle;
+        if (child && !parent || (child &&
+            parent && compare(child, parent))) {
+
+            if (child.constraint1) {
+                oppositeAngle = child.constraint1.chemicalAngle;
+                //console.log(0);
+            } else if (child.occupiedAngle !== null) {
+                oppositeAngle = child.occupiedAngle;
+                //console.log(1);
+            } else {
+                Util_tools.handleError(
+                    `Child doesn't have neither constraint nor occupied angle: id ${child.id}`);
+            }
+
+        } else if (!child && parent || (child &&
+                parent && compare(parent, child))) {
+
+            if (this.body.constraint2) {
+                oppositeAngle = this.body.constraint2.chemicalAngle;
+                //console.log(2);
+            } else {
+                // If body to connect is still connecting itself,
+                // we do not know what will be it's connecting angle yet
+                // and therefor can not determine opposite angle.
+                // Adding children to connecting particles is forbidden,
+                // but it's possible to end up here while connecting
+                // some complex molecule
+
+                return this.getClosestAngle(angle);
+            }
+
+        } else {
+            Util_tools.handleError(`can't determine biggest neighbour: 
+            id ${this.body.id}, child ${child}, parent ${parent}, 
+            chemical bonds ${this.body.chemicalBonds}, 
+            chemicalChildren ${this.body.chemicalChildren.length}`)
+        }
+
+        let offset;
+        let resultAngle = (oppositeAngle + Math.PI) % (2 * Math.PI);
+        let resultAngleIndex = this.body.bondAngles.map(angle =>
+            {return angle.angle}).indexOf(resultAngle);
+        if (resultAngleIndex == -1) {
+            Util_tools.handleError(`Wrong result angle calculated: angle 
+                    ${resultAngle}, id ${this.body.id}, bond angles 
+                    ${this.body.bondAngles.map(angle => {
+                        return angle.angle;
+            })}, opposite angle ${oppositeAngle}`)
+        }
+
+        //console.log(`opposite angle ${oppositeAngle}`);
+        //console.log(`result angle ${resultAngle}`);
+
+        if(!this.body.bondAngles[resultAngleIndex].available)
+            return this.getClosestAngle(angle);
+
+        this.body.bondAngles[resultAngleIndex].available = false;
+        return resultAngle;
+    }
+
+    getClosestAngle(angle) {
+        //console.log("given angle " + angle);
+        let bondAngles = this.body.bondAngles;
+
+        let difference = bondAngles.map(function (obj) {
+            let diff = Math.abs(obj.angle - angle);
+            if (angle > Math.PI / 2 * 3 && obj.angle == 0) diff = 0;
+            if (!obj.available) diff = Infinity;
+            return {
+                "diff": diff,
+                "index": bondAngles.indexOf(obj)
+            };
+        }).sort(function (a, b) {
+            return a.diff - b.diff;
+        });
+
+        // for (let i = 0; i < bondAngles.length; ++i) {
+        //     if (bondAngles[i].available) {
+        //         console.log("possible angle " + bondAngles[i].angle);
+        //     }
+        // }
+
+        let resultAngle = bondAngles[difference[0].index];
+        resultAngle.available = false;
         //console.log("closest angle " + this.body.bondAngles[difference[0].index].angle);
-        return angle.angle;
+        return resultAngle.angle;
     }
 
     freeBondAngle(angle) {
@@ -539,7 +640,9 @@ class BasicParticle {
         var rotationAngle = Geometry.findAngle(garbageBody.position,
             parentBody.position, garbageBody.angle);
 
-        var garbageAngle = this.getClosestAngle.call({ body: garbageBody }, rotationAngle);
+        var garbageAngle =
+            this.getAngleToConnect.call({ body: garbageBody, getClosestAngle: this.getClosestAngle},
+                                        rotationAngle, parentBody);
 
         Body.rotate(garbageBody, (rotationAngle - garbageAngle));
         return garbageAngle;
@@ -559,7 +662,7 @@ class BasicParticle {
                 self.connectBody = this.connectBody;
                 self.freeBondAngle = this.freeBondAngle;
                 self.correctParentBond = this.correctParentBond;
-                self.getClosestAngle = this.getClosestAngle;
+                self.getAngleToConnect = this.getAngleToConnect;
                 self.body = this.body.chemicalParent;
 
                 this.reconnectBond.call(self, this.body, engine);

@@ -5,7 +5,7 @@
   },
 
   "game": {
-    "botsQuantity": 0,
+    "botsQuantity": 20,
 
     "defaultElement": "C",
 
@@ -14,7 +14,9 @@
     "garbageDensity": 0.0000332,
 
     "chemistry": {
-      "useLibrary": true,
+      "dontAddChildrenToConnectingParticles": true,
+
+      "useLibrary": false,
 
       "elementDelimiter": "|",
 

@@ -11,6 +11,7 @@ class Bot extends ActiveElement {
 
     constructor(position, engine, elem, emitter,
                 websocketservice, chemistry, color) {
+        console.log(arguments);
         super(websocketservice, position, engine, elem,
                 emitter, chemistry, color);
 
@@ -28,21 +29,26 @@ class Bot extends ActiveElement {
     }
 
     processBotLogic() {
-        this.move();
+        this.wonder();
     }
 
-    move() {
+    wonder() {
+        const velocity = 6;
+        const changeDirectionChance = 0.2;
+
         let dirPos = this.directionPosition;
-        dirPos.x += Math.round(3 - Math.random() * 6);
-        dirPos.y += Math.round(3 - Math.random() * 6);
+        dirPos.x += Math.round(velocity / 2
+                    - Math.random() * velocity);
+        dirPos.y += Math.round(velocity / 2
+                    - Math.random() * velocity);
         this.applyVelocity(dirPos.x, dirPos.y);
 
         ++this.ticks;
 
         if (this.ticks > this.ticksBeforeTurnMax ||
             this.ticks > this.ticksBeforeTurnMin &&
-            Math.random() < 0.2) {
-            this.setDirectionPosition();
+            Math.random() < changeDirectionChance) {
+            this.setRandomDirectionPosition();
             this.ticks = 0;
         }
     }
@@ -61,21 +67,21 @@ class Bot extends ActiveElement {
 
         this.ticks = 0;
 
-        this.setDirectionPosition();
+        this.setRandomDirectionPosition();
     }
 
-    setDirectionPosition() {
+    setRandomDirectionPosition() {
         this.directionPosition = {};
         this.directionPosition.x = Math.round(30 - Math.random() * 60);
         this.directionPosition.y = Math.round(30 - Math.random() * 60);
     }
 
     checkResizeGrow() {
-
+        // do nothing
     }
 
     checkResizeShrink() {
-
+        // do nothing
     }
 }
 
