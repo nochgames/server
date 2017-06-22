@@ -215,7 +215,7 @@ class ActiveElement extends basicParticle {
 
         var pos1 = this.body.position;
 
-        //TODO: make players wonder properly
+        //TODO: make players wander properly
         this.traversDST(this.body, function(body) {
             body.force = { x: 0, y: 0 };
             body.torque = 0;

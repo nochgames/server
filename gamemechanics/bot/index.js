@@ -29,10 +29,10 @@ class Bot extends ActiveElement {
     }
 
     processBotLogic() {
-        this.wonder();
+        this.wander();
     }
 
-    wonder() {
+    wander() {
         const velocity = 6;
         const changeDirectionChance = 0.2;
 
