@@ -162,6 +162,10 @@ class ActiveElement extends basicParticle {
         }
     }
 
+    setNumber(number) {
+        this.body.number = this.body.playerNumber = number;
+    }
+
     //turns player into garbage before appending it to another player
     garbagify(playersArray, garbageArray, newPlayerBody) {
 

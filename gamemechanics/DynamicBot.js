@@ -2,7 +2,7 @@
  * Created by fatman on 20/04/17.
  */
 
-var Wanderer = require('./bot');
+let Wanderer = require('./bot');
 
 let Bots = {
     Wanderer

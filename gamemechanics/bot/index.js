@@ -4,28 +4,29 @@
 
 'use strict';
 
-let ActiveElement = require("../ActiveElement");
+let BasicBot = require("../BasicBot");
 let config = require('config-node');
 
-class Bot extends ActiveElement {
+class Bot extends BasicBot {
 
     constructor(position, engine, elem, emitter,
                 websocketservice, chemistry, color) {
-        console.log(arguments);
-        super(websocketservice, position, engine, elem,
-                emitter, chemistry, color);
-
-        this.name = Math.random().toString(36).substr(2, 5);
-
-        this.body.inGameType = "player";
-        this.isBot = true;
-
-        this.initBotLogic();
+        //console.log(arguments);
+        super(position, engine, elem, emitter,
+                websocketservice, chemistry, color, "Wanderer_");
     }
 
-    update() {
-        super.update();
-        this.processBotLogic();
+    initBotLogic() {
+        this.ticksBeforeTurnMin =
+            config.game.simpleBot.sameDirSecMin *
+            config.game.updatesPerSec;
+        this.ticksBeforeTurnMax =
+            config.game.simpleBot.sameDirSecMax *
+            config.game.updatesPerSec;
+
+        this.ticks = 0;
+
+        this.setRandomDirectionPosition();
     }
 
     processBotLogic() {
@@ -53,35 +54,10 @@ class Bot extends ActiveElement {
         }
     }
 
-    setNumber(number) {
-        this.body.number = this.body.playerNumber = number;
-    }
-
-    initBotLogic() {
-        this.ticksBeforeTurnMin =
-            config.game.simpleBot.sameDirSecMin *
-            config.game.updatesPerSec;
-        this.ticksBeforeTurnMax =
-            config.game.simpleBot.sameDirSecMax *
-            config.game.updatesPerSec;
-
-        this.ticks = 0;
-
-        this.setRandomDirectionPosition();
-    }
-
     setRandomDirectionPosition() {
         this.directionPosition = {};
         this.directionPosition.x = Math.round(30 - Math.random() * 60);
         this.directionPosition.y = Math.round(30 - Math.random() * 60);
-    }
-
-    checkResizeGrow() {
-        // do nothing
-    }
-
-    checkResizeShrink() {
-        // do nothing
     }
 }
 

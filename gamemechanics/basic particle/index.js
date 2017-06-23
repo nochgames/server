@@ -497,7 +497,7 @@ class BasicParticle {
             chemicalChildren ${this.body.chemicalChildren.length}`)
         }
 
-        let offset;
+        // let offset;
         let resultAngle = (oppositeAngle + Math.PI) % (2 * Math.PI);
         let resultAngleIndex = this.body.bondAngles.map(angle =>
             {return angle.angle}).indexOf(resultAngle);
