@@ -451,95 +451,71 @@ class BasicParticle {
     }
 
     getAngleToConnect(angle, secondBody) {
-        let chemicalChildren =
-            this.body.chemicalChildren.filter(child =>
-            {return child && child.id != secondBody.id;});
-        let neighboursNumber = chemicalChildren.length;
-        if (this.body.chemicalParent && this.body.chemicalParent.id != secondBody.id)
-            ++neighboursNumber;
 
-        //console.log(`valency ${this.body.elValency}, neighbours number ${neighboursNumber}`);
-        if (this.body.elValency != 4 || neighboursNumber == 0) {
+        let getSuitableAngleIndexes = (oppositeAngle, deltaAngle) => {
+
+            let angles = this.body.bondAngles.map(angle =>
+            {return angle.angle});
+
+            let resultAngles = [
+                Util_tools.reduceAngle(oppositeAngle + deltaAngle)];
+            let resultIndexes = [
+                angles.indexOf(resultAngles[0])];
+
+            if (deltaAngle == 90) {
+                resultAngles.push(
+                    Util_tools.reduceAngle(oppositeAngle - deltaAngle));
+                resultIndexes.push(
+                    angles.indexOf(resultAngles[1]));
+            }
+
+            for (let i = 0; i < resultIndexes.length; ++i) {
+                if (resultAngles[i] == -1) {
+                    Util_tools.handleError(`Wrong result angle calculated: 
+                        angle ${resultAngles[i]}, id ${this.body.id}, bond angles 
+                        ${this.body.bondAngles.map(angle => {
+                        return angle.angle;
+                    })}, opposite angle ${oppositeAngle}`);
+                }
+            }
+
+            return resultIndexes;
+        };
+
+        if (this.body.elValency != 4 || this.body.neighbours.length == 0) {
             return this.getClosestAngle(angle)
         }
 
-        let compare;
-        if (secondBody.elValency == 4) {
-            compare = function (first, second) {
-                return first.elValency >= second.elValency;
+        let isC = secondBody.element == "C";
+        let angleDeltaCarbon = isC ? Math.PI : Math.PI / 2;
+        let angleDeltaNonCarbon = isC ? Math.PI / 2 : Math.PI;
+
+        let carbons = this.body.neighbours.filter(neighbour => {
+            return neighbour.body.element == "C";
+        });
+        let nonCarbons = this.body.neighbours.filter(neighbour => {
+            return neighbour.body.element != "C";
+        });
+
+        let finalGetAngle = (candidates, delta) => {
+            for (let i = 0; i < candidates.length; ++i) {
+                let indexes = getSuitableAngleIndexes(candidates[i].angle, delta);
+                for (let i = 0; i < indexes.length; ++i) {
+                    if (this.body.bondAngles[indexes[i]].available) {
+                        this.body.bondAngles[indexes[i]].available = false;
+                        return this.body.bondAngles[indexes[i]].angle;
+                    }
+                }
             }
-        } else {
-            compare = function (first, second) {
-                return first.elValency <= second.elValency;
-            }
-        }
+            return Infinity;
+        };
 
-        let child = null;
-        if (this.body.chemicalChildren.length) {
-            child = chemicalChildren.sort(compare)[0];
-        }
+        let resultAngle = finalGetAngle(carbons, angleDeltaCarbon);
+        if (resultAngle != Infinity) return resultAngle;
+        resultAngle = finalGetAngle(nonCarbons, angleDeltaNonCarbon);
+        if (resultAngle != Infinity) return resultAngle;
 
-        let parent = this.body.chemicalParent;
-
-        let oppositeAngle;
-        if (child && !parent || (child &&
-            parent && compare(child, parent))) {
-
-            if (child.constraint1) {
-                oppositeAngle = child.constraint1.chemicalAngle;
-                //console.log(0);
-            } else if (child.occupiedAngle !== null) {
-                oppositeAngle = child.occupiedAngle;
-                console.log(`oppositeAngle is occupied angle`);
-            } else {
-                Util_tools.handleError(
-                    `Child doesn't have neither constraint nor occupied angle: id ${child.id}`);
-            }
-
-        } else if (!child && parent || (child &&
-                parent && compare(parent, child))) {
-
-            if (this.body.constraint2) {
-                oppositeAngle = this.body.constraint2.chemicalAngle;
-                //console.log(2);
-            } else {
-                // If body to connect is still connecting itself,
-                // we do not know what will be it's connecting angle yet
-                // and therefor can not determine opposite angle.
-                // Adding children to connecting particles is forbidden,
-                // but it's possible to end up here while connecting
-                // some complex molecule
-
-                return this.getClosestAngle(angle);
-            }
-
-        } else {
-            Util_tools.handleError(`can't determine biggest neighbour: 
-            id ${this.body.id}, child ${child}, parent ${parent}, 
-            chemical bonds ${this.body.chemicalBonds}, 
-            chemicalChildren ${this.body.chemicalChildren.length}`)
-        }
-
-        // let offset;
-        let resultAngle = (oppositeAngle + Math.PI) % (2 * Math.PI);
-        let resultAngleIndex = this.body.bondAngles.map(angle =>
-            {return angle.angle}).indexOf(resultAngle);
-        if (resultAngleIndex == -1) {
-            Util_tools.handleError(`Wrong result angle calculated: 
-            angle ${resultAngle}, id ${this.body.id}, bond angles 
-                    ${this.body.bondAngles.map(angle => {
-                        return angle.angle;
-            })}, opposite angle ${oppositeAngle}`)
-        }
-
-        //console.log(`opposite angle ${oppositeAngle}`);
-        //console.log(`result angle ${resultAngle}`);
-
-        if(!this.body.bondAngles[resultAngleIndex].available)
-            return this.getClosestAngle(angle);
-
-        this.body.bondAngles[resultAngleIndex].available = false;
-        return resultAngle;
+        return this.getClosestAngle(angle);
     }
 
     getClosestAngle(angle) {

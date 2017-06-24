@@ -63,6 +63,12 @@ var Util_tools = {
         return false;
     },
 
+    reduceAngle: function (angle) {
+        while (angle < 0) angle += Math.PI * 2;
+
+        return angle % (2 * Math.PI);
+    },
+
     handleError: function (message, doThrow = true) {
         if (!config.noThrow && doThrow) {
             throw new Error(message);
