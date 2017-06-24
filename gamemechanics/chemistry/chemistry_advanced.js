@@ -97,7 +97,7 @@ class ChemistryAdvanced {
 
     recalculateEnergy(body, newElement) {
         for (let i = 0; i < body.neighbours.length; ++i) {
-            if (!body.neighbours[i].body) continue;
+
             let bond = this.getBondParams(body, body.neighbours[i].body);
 
             let newBond = this.getBondParams({ element: newElement }, body.neighbours[i].body);
@@ -177,7 +177,6 @@ class ChemistryAdvanced {
     calculateEnergy(body) {
         let energy = 0;
         for (let i = 0; i < body.neighbours.length; ++i) {
-            if (!body.neighbours[i].body) continue;
             let bond = this.getBondParams(body, body.neighbours[i].body);
             if (bond) {
                 energy += bond[body.element];

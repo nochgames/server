@@ -67,12 +67,8 @@ class BasicParticle {
             Util_tools.addToArray(this.neighbours, {body: body, angle: angle});
         };
         this.body.removeNeighbour = function (body) {
-            for (let i = 0; i < this.neighbours.length; ++i) {
-                if (this.neighbours[i] && this.neighbours[i].body.id == body.id) {
-                    delete this.neighbours[i];
-                    break;
-                }
-            }
+            this.neighbours = this.neighbours.filter(
+                (neighbour) => {return neighbour.body.id != body.id});
         }
     }
 
@@ -189,7 +185,7 @@ class BasicParticle {
             }
 
             for (let i = 0; i < node.neighbours.length; ++i) {
-                if (node.neighbours[i]) node.neighbours[i].body.removeNeighbour(node);
+                node.neighbours[i].body.removeNeighbour(node);
             }
             node.neighbours = [];
 
