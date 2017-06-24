@@ -411,8 +411,13 @@ class BasicParticle {
             let bondType = node.bondType;
 
             if (prevConstraint2) {
+                let angle = prevConstraint1.chemicalAngle;
+                prevConstraint1.chemicalAngle = prevConstraint2.chemicalAngle;
+                prevConstraint2.chemicalAngle = angle;
+
                 node.constraint1 = prevConstraint1;
                 node.constraint2 = prevConstraint2;
+
                 node.bondType = prevBondType;
                 Util_tools.addToArray(prevChildren, node);
                 if (!Util_tools.deleteFromArray(node.chemicalChildren, prevNode)) {
@@ -489,7 +494,7 @@ class BasicParticle {
                 //console.log(0);
             } else if (child.occupiedAngle !== null) {
                 oppositeAngle = child.occupiedAngle;
-                //console.log(1);
+                console.log(`oppositeAngle is occupied angle`);
             } else {
                 Util_tools.handleError(
                     `Child doesn't have neither constraint nor occupied angle: id ${child.id}`);
