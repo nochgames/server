@@ -397,6 +397,7 @@ class BasicParticle {
         let prevConstraint1;
         let prevConstraint2;
         let prevChildren;
+        let prevBondType;
 
         let node = this.body;
 
@@ -407,10 +408,12 @@ class BasicParticle {
             let cons1 = node.constraint1;
             let cons2 = node.constraint2;
             let childeren = node.chemicalChildren;
+            let bondType = node.bondType;
 
             if (prevConstraint2) {
                 node.constraint1 = prevConstraint1;
                 node.constraint2 = prevConstraint2;
+                node.bondType = prevBondType;
                 Util_tools.addToArray(prevChildren, node);
                 if (!Util_tools.deleteFromArray(node.chemicalChildren, prevNode)) {
                     Util_tools.handleError(`Child is not in parents children id: ${prevNode.id}, parent id ${node.id}`)
@@ -423,6 +426,7 @@ class BasicParticle {
             prevConstraint1 = cons1;
             prevConstraint2 = cons2;
             prevChildren = childeren;
+            prevBondType = bondType;
 
             if (!isFirst) {
                 exPlayer = node;
