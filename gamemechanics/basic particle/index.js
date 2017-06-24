@@ -202,9 +202,9 @@ class BasicParticle {
 
         if (node.player && node.player.body.id != node.id) {
             node.player.body.realMass -= node.mass;
-            if (node.inGameType == "garbage") {
-                Util_tools.handleError("check decoupling called on garbage: id " + node.id)
-            }
+            // if (node.inGameType == "garbage") {
+            //     Util_tools.handleError("check decoupling called on garbage: id " + node.id)
+            // }
             node.player.deleteFromMoleculeId(node.element);
             node.player = null;
         }
