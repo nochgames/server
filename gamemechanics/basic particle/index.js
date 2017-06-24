@@ -38,6 +38,7 @@ class BasicParticle {
          { set: function(value) { if (value > 0) this } });*/
         this.body.energy = 0;
         this.body.chemicalChildren = [];
+        this.body.neighbours = [];
 
         this.body.chemistry = chemistry;
         chemistry.setElement(elem, this);
@@ -51,17 +52,27 @@ class BasicParticle {
 
         World.addBody(engine.world, this.body);
 
-        var self = this;
         this.body.previousLocalPosition = {x: 0, y: 0};
         this.body.superMutex = 0;
         this.body.chemicalBonds = 0;
         this.body.intervalID = null;
 
         this.body.getFreeBonds = function () {
-            return self.body.elValency - self.body.chemicalBonds;
+            return this.elValency - this.chemicalBonds;
         };
         this.body.getAvailableNeutrons = function () {
-            return self.body.maxNeutrons - self.body.neutrons;
+            return this.maxNeutrons - this.neutrons;
+        };
+        this.body.addNeighbour = function (body, angle) {
+            Util_tools.addToArray(this.neighbours, {body: body, angle: angle});
+        };
+        this.body.removeNeighbour = function (body) {
+            for (let i = 0; i < this.neighbours.length; ++i) {
+                if (this.neighbours[i] && this.neighbours[i].body.id == body.id) {
+                    delete this.neighbours[i];
+                    break;
+                }
+            }
         }
     }
 
@@ -177,6 +188,10 @@ class BasicParticle {
                 node.occupiedAngle = null;
             }
 
+            for (let i = 0; i < node.neighbours.length; ++i) {
+                if (node.neighbours[i]) node.neighbours[i].body.removeNeighbour(node);
+            }
+            node.neighbours = [];
 
             if (node.chemicalParent.chemicalBonds) {
                 node.chemicalParent.chemicalBonds -= node.bondType;
@@ -210,16 +225,18 @@ class BasicParticle {
         }
     }
 
-    connectBody(garbageBody, finalCreateBond) {
+    connectBody(bodyToConnect, finalCreateBond) {
         var i = 0;
         var N = 30;     // Number of iterations
 
-        garbageBody.collisionFilter.mask = 0x0008;      // turn off collisions
+        bodyToConnect.collisionFilter.mask = 0x0008;      // turn off collisions
 
         var currentAngle = Geometry.findAngle(this.body.position,
-            garbageBody.position, this.body.angle);
-        var angle = this.getAngleToConnect(currentAngle, garbageBody);
-        garbageBody.occupiedAngle = angle;
+            bodyToConnect.position, this.body.angle);
+        var angle = this.getAngleToConnect(currentAngle, bodyToConnect);
+        bodyToConnect.occupiedAngle = angle;
+
+        this.body.addNeighbour(bodyToConnect, angle);
 
         var realAngle = angle;
 
@@ -234,34 +251,35 @@ class BasicParticle {
         var step = difference / N;
 
         var self = this;
-        garbageBody.intervalID = setInterval(function () {
+        bodyToConnect.intervalID = setInterval(function () {
             var pos1 = self.body.position;
 
             var ADDITIONAL_LENGTH = 20;
 
             var delta = {
-                x: ((self.body.circleRadius + garbageBody.circleRadius
+                x: ((self.body.circleRadius + bodyToConnect.circleRadius
                 + ADDITIONAL_LENGTH)
                 * Math.cos(currentAngle + step * i + self.body.angle)
-                + pos1.x - garbageBody.position.x) /*/ (N - i)*/,
-                y: ((self.body.circleRadius + garbageBody.circleRadius
+                + pos1.x - bodyToConnect.position.x) /*/ (N - i)*/,
+                y: ((self.body.circleRadius + bodyToConnect.circleRadius
                 + ADDITIONAL_LENGTH)
                 * Math.sin(currentAngle + step * i + self.body.angle)
-                + pos1.y - garbageBody.position.y) /*/ (N - i)*/
+                + pos1.y - bodyToConnect.position.y) /*/ (N - i)*/
             };
 
-            Body.translate(garbageBody, {
+            Body.translate(bodyToConnect, {
                 x: delta.x,
                 y: delta.y });
 
             if (i++ === N) {
-                clearInterval(garbageBody.intervalID);
+                clearInterval(bodyToConnect.intervalID);
 
-                var garbageAngle = self.correctParentBond.call(self, garbageBody, self.body);
+                // this.body is connected to bodyToConnect with this angle
+                var garbageAngle = self.correctParentBond.call(self, bodyToConnect, self.body);
 
-                garbageBody.occupiedAngle = null;
+                bodyToConnect.occupiedAngle = null;
                 if (finalCreateBond) {
-                    finalCreateBond(self.body, garbageBody, angle, garbageAngle);
+                    finalCreateBond(self.body, bodyToConnect, angle, garbageAngle);
                 }
             }
         }, 30);
@@ -502,8 +520,8 @@ class BasicParticle {
         let resultAngleIndex = this.body.bondAngles.map(angle =>
             {return angle.angle}).indexOf(resultAngle);
         if (resultAngleIndex == -1) {
-            Util_tools.handleError(`Wrong result angle calculated: angle 
-                    ${resultAngle}, id ${this.body.id}, bond angles 
+            Util_tools.handleError(`Wrong result angle calculated: 
+            angle ${resultAngle}, id ${this.body.id}, bond angles 
                     ${this.body.bondAngles.map(angle => {
                         return angle.angle;
             })}, opposite angle ${oppositeAngle}`)

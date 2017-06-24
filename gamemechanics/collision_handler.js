@@ -132,7 +132,7 @@ class CollisionHandler {
 
         var context = this.context;
 
-        return function(playerBody, garbageBody, angle1, angle2) {
+        return function(playerBody, garbageBody, angleGarbageToPlayer, anglePlayerToGarbage) {
 
             garbageBody.collisionFilter.mask = 0x0001;
 
@@ -169,13 +169,16 @@ class CollisionHandler {
             garbageBody.constraint1 = constraintA;
             garbageBody.constraint2 = constraintB;
 
-            garbageBody.constraint1.chemicalAngle = angle1;
-            garbageBody.constraint2.chemicalAngle = angle2;
+            garbageBody.constraint1.chemicalAngle = angleGarbageToPlayer;
+            garbageBody.constraint2.chemicalAngle = anglePlayerToGarbage;
+
+            garbageBody.addNeighbour(playerBody, anglePlayerToGarbage);
 
             World.add(context.engine.world, [constraintA, constraintB]);
 
             context.playersEmitter.emit('bond created',
-                {bc1: playerBody, bc2: garbageBody, p: context.getPlayer(playerBody), t: garbageBody.bondType});
+                {bc1: playerBody, bc2: garbageBody,
+                p: context.getPlayer(playerBody), t: garbageBody.bondType});
         }
     }
 
