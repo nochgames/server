@@ -96,19 +96,18 @@ class ChemistryAdvanced {
     }
 
     recalculateEnergy(body, newElement) {
-        let neighbours = body.chemicalChildren.concat(body.chemicalParent);
-        for (let i = 0; i < neighbours.length; ++i) {
-            if (!neighbours[i]) continue;
-            let bond = this.getBondParams(body, neighbours[i]);
+        for (let i = 0; i < body.neighbours.length; ++i) {
+            if (!body.neighbours[i].body) continue;
+            let bond = this.getBondParams(body, body.neighbours[i].body);
 
-            let newBond = this.getBondParams({ element: newElement }, neighbours[i]);
+            let newBond = this.getBondParams({ element: newElement }, body.neighbours[i].body);
             if (!newBond) {
-                this.context.getMainObject(body).dismountBranch(neighbours[i], this.context.engine);
+                this.context.getMainObject(body).dismountBranch(body.neighbours[i].body, this.context.engine);
             } else {
                 body.energy += bond[body.element];
-                neighbours[i].energy += bond[neighbours[i].element];
+                body.neighbours[i].body.energy += bond[body.neighbours[i].body.element];
                 body.energy -= newBond[newElement];
-                neighbours[i].energy -= newBond[neighbours[i].element];
+                body.neighbours[i].body.energy -= newBond[body.neighbours[i].body.element];
             }
         }
     }
@@ -177,10 +176,9 @@ class ChemistryAdvanced {
 
     calculateEnergy(body) {
         let energy = 0;
-        let neighbours = body.chemicalChildren.concat([body.chemicalParent]);
-        for (let i = 0; i < neighbours.length; ++i) {
-            if (!neighbours[i]) continue;
-            let bond = this.getBondParams(body, neighbours[i]);
+        for (let i = 0; i < body.neighbours.length; ++i) {
+            if (!body.neighbours[i].body) continue;
+            let bond = this.getBondParams(body, body.neighbours[i].body);
             if (bond) {
                 energy += bond[body.element];
             }
