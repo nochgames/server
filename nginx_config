@@ -1,0 +1,28 @@
+server {
+    listen       3333;
+    server_name  noch.com;
+
+    location / {
+        root /home/fatman/WebstormProjects/client;
+    }
+
+    location ~ \.(js)$ {
+        root /home/fatman/WebstormProjects/client/js;
+    }
+
+    location ~ \.(css)$ {
+        root /home/fatman/WebstormProjects/client/css;
+    }
+
+    location ~ \.(gif|jpg|png)$ {
+        root /home/fatman/WebstormProjects/client/images;
+    }
+    
+    location ~ \.(ttf|woff|woff2)$ {
+        root /home/fatman/WebstormProjects/client/webfontkit_20150827_122633;
+    }  
+
+    location /api {
+        proxy_pass http://127.0.0.1:3000;
+    }
+}

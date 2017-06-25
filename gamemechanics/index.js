@@ -40,6 +40,8 @@ class GameMechanics {
 
         this.game_map = new GameMap(engine);
 
+        this.isFullSent = false;
+
         this.context = new Context(engine, playersEmitter, this.recyclebin, this.websocketservice);
         new CollisionHandler(this.context);
         this.recyclebin.context = this.context;
@@ -605,14 +607,30 @@ class GameMechanics {
         }
     }
 
+    handlePlayersNumber() {
+        let playersNumber = this.context.players.filter(player =>
+        { return player && !player.isBot; }).length;
+
+        if (!this.isFullSent && playersNumber == config.server.playersPerServer) {
+            this.context.playersEmitter.emit('is full');
+            this.isFullSent = true;
+        }
+
+        if (this.isFullSent && playersNumber < config.server.playersPerServer) {
+            this.context.playersEmitter.emit('is not full');
+            this.isFullSent = false;
+        }
+
+        if (!playersNumber) {
+            this.checkGarbageVisibility();
+            this.context.playersEmitter.emit('no players');
+        }
+    }
+
     run() {
 
         this.intervals.push(setInterval(() => {
-            if (!this.context.players.filter(player =>
-                { return player && !player.isBot; }).length) {
-                this.checkGarbageVisibility();
-                this.context.playersEmitter.emit('no players');
-            }
+            this.handlePlayersNumber();
 
             Matter.Engine.update(this.context.engine, this.context.engine.timing.delta);
             this.recyclebin.empty();

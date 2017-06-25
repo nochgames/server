@@ -77,7 +77,7 @@ class MolecularLibrary {
         }
         parsedStr = parsedStr.sort().join(config.game.chemistry.elementDelimiter).toLowerCase();
 
-        console.log(parsedStr);
+        //console.log(parsedStr);
         return parsedStr;
     }
 

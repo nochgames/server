@@ -1,7 +1,9 @@
 {
   "noThrow": false,
   "server" : {
-    "port": "8085"
+    "port": "8085",
+    "playersPerServer": 1,
+    "defaultServersNumber": 1
   },
 
   "game": {
@@ -16,7 +18,7 @@
     "chemistry": {
       "dontAddChildrenToConnectingParticles": true,
 
-      "useLibrary": false,
+      "useLibrary": true,
 
       "elementDelimiter": "|",
 
