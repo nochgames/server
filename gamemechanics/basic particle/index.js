@@ -486,9 +486,12 @@ class BasicParticle {
             return this.getClosestAngle(angle)
         }
 
+        let carbonNonCarbonDelta =
+            (this.body.chemicalBonds != this.body.elValency) ? Math.PI / 2 : Math.PI;
+
         let isC = secondBody.element == "C";
-        let angleDeltaCarbon = isC ? Math.PI : Math.PI / 2;
-        let angleDeltaNonCarbon = isC ? Math.PI / 2 : Math.PI;
+        let angleDeltaCarbon = isC ? Math.PI : carbonNonCarbonDelta;
+        let angleDeltaNonCarbon = isC ? carbonNonCarbonDelta : Math.PI;
 
         let carbons = this.body.neighbours.filter(neighbour => {
             return neighbour.body.element == "C";
@@ -510,9 +513,14 @@ class BasicParticle {
             return Infinity;
         };
 
-        let resultAngle = finalGetAngle(carbons, angleDeltaCarbon);
+        let firstCandidates = isC ? carbons : nonCarbons;
+        let secondCandidates = isC ? nonCarbons : carbons;
+        let firstDelta = isC ? angleDeltaCarbon : angleDeltaNonCarbon;
+        let secondDelta = isC ? angleDeltaNonCarbon : angleDeltaCarbon;
+
+        let resultAngle = finalGetAngle(firstCandidates, firstDelta);
         if (resultAngle != Infinity) return resultAngle;
-        resultAngle = finalGetAngle(nonCarbons, angleDeltaNonCarbon);
+        resultAngle = finalGetAngle(secondCandidates, secondDelta);
         if (resultAngle != Infinity) return resultAngle;
 
         return this.getClosestAngle(angle);
