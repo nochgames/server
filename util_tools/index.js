@@ -69,6 +69,23 @@ var Util_tools = {
         return angle % (2 * Math.PI);
     },
 
+    isCollidingRectCircle(rect, circle) {
+        let critDistX = rect.x + circle.radius;
+        let critDistY = rect.y + circle.radius;
+
+        let distX = Math.abs(rect.x - circle.x);
+        let distY = Math.abs(rect.y - circle.y);
+
+        if (distX > critDistX || distY > critDistY) return false;
+        if (distY < rect.height || distX < rect.width) return true;
+
+        let distCircleX = distX - rect.width;
+        let distCircleY = distY - rect.height;
+
+        return Math.pow(distCircleX, 2) + Math.pow(distCircleY, 2)
+                < Math.pow(circle.radius, 2);
+    },
+
     handleError: function (message, doThrow = true) {
         if (!config.noThrow && doThrow) {
             throw new Error(message);
