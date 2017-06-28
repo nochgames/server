@@ -38,13 +38,13 @@ class GameMechanics {
 
         this.isRunning = false;
 
-        this.game_map = new GameMap(engine);
-
         this.isFullSent = false;
 
         this.context = new Context(engine, playersEmitter, this.recyclebin, this.websocketservice);
         new CollisionHandler(this.context);
         this.recyclebin.context = this.context;
+
+        this.game_map = new GameMap(engine, this.context);
 
         this.context.chemistry = new Chemistry(this.context);
     }

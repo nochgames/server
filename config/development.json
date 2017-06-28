@@ -7,7 +7,7 @@
   },
 
   "game": {
-    "botsQuantity": 20,
+    "botsQuantity": 0,
 
     "defaultElement": "C",
 
@@ -395,6 +395,8 @@
       "borderOffsetPortion": 0.005,
 
       "deadlyBorder": false,
+
+      "outputGrid": false,
 
       "portions": {
         "H": 30,
