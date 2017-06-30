@@ -1,22 +1,21 @@
 'use strict';
 
-var Messages = require("../messages");
-var Util_tools = require("../util_tools");
-var Matter = require('matter-js/build/matter.js');
-var RecycleBin = require('./recycleBin');
-var Context = require('./context');
-var Garbage = require("./garbage");
-var Player = require('./player');
-var Bot = require('./bot');
-var GameMap = require('./game_map');
-var CollisionHandler = require('./collision_handler');
-var Chemistry = require('./chemistry/chemistry_advanced');
-var config = require('config-node');
-var elements = config.game.chemistry.elements;
-var portions = config.game.map.portions;
-var DynamicBot = require('./DynamicBot');
+const Messages = require("../messages");
+const Util_tools = require("../util_tools");
+const Matter = require('matter-js/build/matter.js');
+const RecycleBin = require('./recycleBin');
+const Context = require('./context');
+const Garbage = require("./garbage");
+const Player = require('./player');
+const GameMap = require('./game_map');
+const CollisionHandler = require('./collision_handler');
+const Chemistry = require('./chemistry/chemistry_advanced');
+const config = require('config-node');
+const elements = config.game.chemistry.elements;
+const portions = config.game.map.portions;
+const DynamicBot = require('./DynamicBot');
 
-var Engine = Matter.Engine,
+const Engine = Matter.Engine,
     World = Matter.World,
     Bodies = Matter.Bodies,
     Body = Matter.Body,
@@ -39,6 +38,7 @@ class GameMechanics {
         this.isRunning = false;
 
         this.isFullSent = false;
+        this.tooMuchC = false;
 
         this.context = new Context(engine, playersEmitter, this.recyclebin, this.websocketservice);
         new CollisionHandler(this.context);
@@ -54,6 +54,13 @@ class GameMechanics {
         var diameter = this.game_map.radius * 2;
 
         var quantity = Math.floor(garbageDensity * Math.PI * diameter * diameter / 4);
+
+        let maxElementsPossible = quantity + config.server.playersPerServer;
+        let elementsLimit = Math.pow(this.game_map.gridSize, 2) / 4;
+        if (quantity > 4 && maxElementsPossible > elementsLimit) {
+            Util_tools.handleError(`An attempt to create ${quantity} elements
+            while limit is ${elementsLimit - config.server.playersPerServer}`);
+        }
 
         console.log(`creating ${quantity} elements`);
 
@@ -83,12 +90,16 @@ class GameMechanics {
     }
 
     createPortionsOfGarbage(quantity) {
-        console.log(`grid size ${config.game.map.gridSize},
-                    diameter ${config.game.chemistry.Li.radius * 2}`);
+
+        this.context.initialElementsQuantity.total =
+            this.context.currentElementsQuantity.total = quantity;
 
         let i = 0;
         for (let key in portions) {
-            let elementQuantity = quantity / 100 * portions[key];
+            let elementQuantity = Math.round(quantity / 100 * portions[key]);
+
+            this.context.currentElementsQuantity[key] = 0;
+            this.context.initialElementsQuantity[key] = elementQuantity;
 
             for (let j = 0; j < elementQuantity; ++j) {
 
@@ -100,7 +111,7 @@ class GameMechanics {
         }
     }
 
-    createSingleGarbage(element, position, number) {
+    createSingleGarbage(element, position, number = this.context.garbage.length) {
         var singleGarbage = new Garbage(position, this.context.engine, element,
             this.context.playersEmitter, this.context.chemistry);
 
@@ -450,6 +461,14 @@ class GameMechanics {
                 Messages.deleteParticle(event.id), event.playersWhoSee);
         });
 
+        this.context.playersEmitter.on('element deleted', event => {
+            --this.context.currentElementsQuantity[event.element];
+        });
+
+        this.context.playersEmitter.on('element appeared', event => {
+            ++this.context.currentElementsQuantity[event.element];
+        });
+
         this.context.playersEmitter.on('element changed', event => {
             if (event.body.inGameType == 'player') {
                 this.context.websocketservice.sendEverybody(
@@ -610,23 +629,71 @@ class GameMechanics {
         }
     }
 
+    balanceElementsQuantity() {
+        let elements = config.game.chemistry.elements;
+        for (let i = 0; i < elements.length; ++i) {
+            //console.log(`element ${elements[i]} init quantity ${this.context.initialElementsQuantity[elements[i]]}
+            //            current quantity ${this.context.currentElementsQuantity[elements[i]]}`);
+            while (this.context.initialElementsQuantity[elements[i]] >
+                    this.context.currentElementsQuantity[elements[i]]) {
+                this.createSingleGarbage(elements[i], this.game_map.getRandomPosition());
+            }
+            let elementsToDeleteNumber = this.context.currentElementsQuantity[elements[i]] -
+                    this.context.initialElementsQuantity[elements[i]];
+            if (elementsToDeleteNumber > 0) {
+                console.log(`There are ${this.context.currentElementsQuantity[elements[i]] -
+                    this.context.initialElementsQuantity[elements[i]]} more ${elements[i]} than allowed`);
+                let freeGarbage = this.context.garbage.filter(
+                    garbage => {return garbage.body.inGameType == 'garbage' && garbage.body.element == elements[i]});
+
+                console.log(`found ${freeGarbage.length} elements`);
+                let deletedElements = 0;
+                while (freeGarbage.length && this.context.initialElementsQuantity[elements[i]] <
+                        this.context.currentElementsQuantity[elements[i]]) {
+                    this.context.recyclebin.prepareToDelete(freeGarbage[0].body);
+                    this.context.playersEmitter.emit('particle died', { id: freeGarbage[0].body.id,
+                        playersWhoSee: freeGarbage[0].body.playersWhoSee });
+
+                    freeGarbage = freeGarbage.shift();
+                    ++deletedElements;
+                }
+
+                if (elements[i] == 'C') {
+                    //console.log(`There are ${this.context.currentElementsQuantity[elements[i]] -
+                    //this.context.initialElementsQuantity[elements[i]]} more ${elements[i]} than allowed`);
+                    if (this.tooMuchC && elementsToDeleteNumber == deletedElements) {
+                        this.tooMuchC = false;
+                    }
+                    if (!this.tooMuchC && elementsToDeleteNumber != deletedElements) {
+                        this.tooMuchC = true;
+                        console.log('Too much C!');
+                    }
+                }
+            }
+            else if (elements[i] == 'C' && this.tooMuchC) {
+                this.tooMuchC = false;
+            }
+        }
+    }
+
     handlePlayersNumber() {
         let playersNumber = this.context.players.filter(player =>
         { return player && !player.isBot; }).length;
 
-        if (!this.isFullSent && playersNumber == config.server.playersPerServer) {
+        if (!this.isFullSent && (playersNumber == config.server.playersPerServer || this.tooMuchC)) {
             this.context.playersEmitter.emit('is full');
             this.isFullSent = true;
         }
 
-        if (this.isFullSent && playersNumber < config.server.playersPerServer) {
-            this.context.playersEmitter.emit('is not full');
-            this.isFullSent = false;
-        }
-
         if (!playersNumber) {
             this.checkGarbageVisibility();
+            this.balanceElementsQuantity();
             this.context.playersEmitter.emit('no players');
+        }
+
+        if (this.isFullSent && (playersNumber < config.server.playersPerServer && !this.tooMuchC)) {
+            this.context.playersEmitter.emit('is not full');
+            this.isFullSent = false;
         }
     }
 
@@ -644,6 +711,7 @@ class GameMechanics {
         this.intervals.push(setInterval(() => {
             this.checkGarbageVisibility();
             this.updateConnectionPossibilityGeneral();
+            this.balanceElementsQuantity();
         }, 1000));
 
         this.logMemoryUsage();

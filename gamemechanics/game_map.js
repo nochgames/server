@@ -32,7 +32,30 @@ class Map {
 
         this.inscribedCircleSide = Math.sqrt(Math.pow(2 * this.radius, 2) / 2);
 
-        console.log(`cell size ${this.inscribedCircleSide / config.game.map.gridSize}`);
+        this.setGridSize();
+    }
+
+    setGridSize() {
+        this.gridSize = config.game.map.gridSize;
+
+        let elements = config.game.chemistry.elements;
+        let cellSize = this.inscribedCircleSide / this.gridSize;
+        let biggestElementRadius = -1;
+        for (let i = 0; i < elements.length; ++i) {
+            if (config.game.chemistry[elements[i]].radius > biggestElementRadius) {
+                biggestElementRadius = config.game.chemistry[elements[i]].radius;
+            }
+        }
+
+        let minimumCellSize = biggestElementRadius * 2 * 1.2;
+        if (cellSize < minimumCellSize) {
+            let newGridSize = Math.floor(this.inscribedCircleSide / minimumCellSize);
+
+            console.log(`gridSize ${this.gridSize} with radius ${this.radius} 
+            leads to cell size ${cellSize}, which is less than minimum ${minimumCellSize}.
+            Calculated grid size ${newGridSize} will be used instead`);
+            this.gridSize = newGridSize;
+        }
     }
 
     createFullBorder() {
@@ -86,17 +109,20 @@ class Map {
                 y: this.center.y - this.inscribedCircleSide / 2 };
 
         let gridCells = [];
+        let freeCellIndexes = [];
 
         for (let i = 0; i < gridSideSize; ++i) {
             gridCells[i] = [];
             for (let j = 0; j < gridSideSize; ++j) {
                 gridCells[i][j] = false;
+                freeCellIndexes.push({i:i, j:j});
             }
         }
 
         let cellSideSize = this.inscribedCircleSide / gridSideSize;
 
-        let garbage = this.context.garbage.filter(garbage => {return garbage});
+        let garbage = this.context.garbage.filter(garbage => {return garbage})
+                        .concat(this.context.players.filter(player => {return player;}));
         for (let i = 0; i < garbage.length; ++i) {
             let currentGarbage = garbage[i];
             let positionInSquare =
@@ -132,6 +158,8 @@ class Map {
 
                 if (Util_tools.isCollidingRectCircle(rect, pos)) {
                     gridCells[i][j] = true;
+                    freeCellIndexes = freeCellIndexes.filter(
+                        indexes => {return indexes.i != i || indexes.j != j;})
                 }
             };
 
@@ -144,7 +172,7 @@ class Map {
         }
 
         let resultGrid = {cells: gridCells, size: gridSideSize,
-                            cellSide: cellSideSize, startPoint: startPoint};
+                            cellSide: cellSideSize, startPoint: startPoint, freeIndexes: freeCellIndexes};
 
         if (config.game.map.debugOutput) this.outPutGrid(resultGrid);
 
@@ -212,14 +240,37 @@ class Map {
         return maxArea;
     }
 
+    calculateRealPositionFromGridIndexes(i, j, areaSize, grid) {
+        return {x: (j + (areaSize * 0.5))
+        * grid.cellSide + grid.startPoint.x,
+            y: (i + (areaSize * 0.5))
+            * grid.cellSide + grid.startPoint.y}
+    }
+
     getPositionInMaximumFreeArea() {
-        let grid = this.createGrid(config.game.map.gridSize);
+        let grid = this.createGrid(this.gridSize);
+        if (!grid.freeIndexes.length) {
+            console.log('no available positions in grid');
+            return this.getRandomPositionInner();
+        }
         let maxArea = this.getMaximumFreeArea(grid);
 
-        return {x: (maxArea.j + (maxArea.sideSize * 0.5))
-                * grid.cellSide + grid.startPoint.x,
-                y: (maxArea.i + (maxArea.sideSize * 0.5))
-                * grid.cellSide + grid.startPoint.y}
+        return this.calculateRealPositionFromGridIndexes(maxArea.i, maxArea.j, maxArea.sideSize, grid);
+    }
+
+    getRandomPosition() {
+        let grid = this.createGrid(this.gridSize);
+
+        if (!grid.freeIndexes.length) {
+            console.log('no available positions in grid');
+            return this.getRandomPositionOuter();
+        }
+
+        let indexes = grid.freeIndexes[Math.floor(grid.freeIndexes.length * Math.random())];
+
+        if (config.game.map.debugOutput) console.log(`random free cell i ${indexes.i} j ${indexes.j}`);
+
+        return this.calculateRealPositionFromGridIndexes(indexes.i, indexes.j, 1, grid);
     }
 }
 

@@ -42,13 +42,15 @@ class RecycleBin {
                     var playerToCheck = this.context.getPlayer(ghost);
                     this.context.getMainObject(ghost).die(this.context.engine);
                     this.deleteProperly(ghost);
+                    this.context.playersEmitter.emit('element deleted', {element:ghost.element});
                     delete this.ghosts[i];
                     playerToCheck.checkResizeShrink();
                     break;
                 case "garbage":
                     this.deletedGabageNumbers.push(ghost.number);
-                    this.context.garbage[ghost.number].die(this.context.engine);
+                    this.context.getMainObject(ghost).die(this.context.engine);
                     this.deleteProperly(ghost);
+                    this.context.playersEmitter.emit('element deleted', {element:ghost.element});
                     delete this.ghosts[i];
                     break;
                 case "player":
@@ -58,6 +60,7 @@ class RecycleBin {
                     player.lose(this.context.engine, this.context.players, this.context.garbage);
                     this.deleteProperly(ghost);
                     //player.garbagify(this.context.players, this.context.garbage);
+                    this.context.playersEmitter.emit('element deleted', {element:ghost.element});
                     delete this.ghosts[i];
                     break;
                 default :

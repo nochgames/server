@@ -13,7 +13,7 @@
 
     "doReverseGarbage": false,
 
-    "garbageDensity": 0.0000332,
+    "garbageDensity": 0.000005,
 
     "chemistry": {
       "dontAddChildrenToConnectingParticles": true,
@@ -385,7 +385,7 @@
     },
 
     "map": {
-      "gameDiameter": 4000,
+      "gameDiameter": 750,
       "gridSize": 30,
 
       "playerAreaPortion": 0.4,
@@ -395,7 +395,7 @@
 
       "borderOffsetPortion": 0.005,
 
-      "deadlyBorder": false,
+      "deadlyBorder": true,
 
       "debugOutput": true,
 

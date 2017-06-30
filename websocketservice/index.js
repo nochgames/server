@@ -22,7 +22,7 @@ class WebsocketService {
         this.addressees = gamemechanics.context.players;
         this.gamemechanics = gamemechanics;
 
-        var self = this;
+        let self = this;
         this.webSocketServer.on('connection', function(ws) {
             if (self.IPs.has(ws._socket.remoteAddress)) {
                 ws.close();
@@ -35,7 +35,7 @@ class WebsocketService {
             if (!gamemechanics.isRunning) gamemechanics.run();
 
 
-            var stub = gamemechanics.addPlayerStub(ws);
+            let stub = gamemechanics.addPlayerStub(ws);
 
             self.updateEventListener(ws, 'message', stub, stub, self.onMessageMap,
                 self.createDoOnMessageStub(ws, stub));
@@ -57,32 +57,32 @@ class WebsocketService {
         socket.on(event, callback);
     }
 
-    sendToPlayer(message, reciever, event_name) {
+    sendToPlayer(message, receiver, event_name) {
 
-        if (reciever.isBot) return;
+        if (receiver.isBot) return;
 
         message = JSON.stringify(message);
         try {
-            reciever.ws.send(message);
+            receiver.ws.send(message);
         } catch(e) {
             console.log(`Unable to send ${message}
-                 to player. Player is\n ${reciever}\n ${e}`);
+                 to player. Player is\n ${receiver}\n ${e}`);
         }
     }
 
-    closeSocket(lastMessage, reciever) {
-        this.sendToPlayer(lastMessage, reciever);
+    closeSocket(lastMessage, receiver) {
+        this.sendToPlayer(lastMessage, receiver);
 
-        reciever.ws.removeListener('message', this.onMessageMap.get(reciever));
-        reciever.ws.removeListener('error', this.onErrorMap.get(reciever));
-        reciever.ws.removeListener('close', this.onCloseMap.get(reciever));
-        this.onCloseMap.delete(reciever);
-        this.onErrorMap.delete(reciever);
-        this.onCloseMap.delete(reciever);
+        receiver.ws.removeListener('message', this.onMessageMap.get(receiver));
+        receiver.ws.removeListener('error', this.onErrorMap.get(receiver));
+        receiver.ws.removeListener('close', this.onCloseMap.get(receiver));
+        this.onCloseMap.delete(receiver);
+        this.onErrorMap.delete(receiver);
+        this.onCloseMap.delete(receiver);
 
         try {
-            var ip = reciever.ws._socket.remoteAddress;
-            reciever.ws.close();
+            var ip = receiver.ws._socket.remoteAddress;
+            receiver.ws.close();
 
             console.log(`killing player, IP ${ip}`);
             this.IPs.delete(ip);
