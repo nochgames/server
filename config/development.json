@@ -386,6 +386,7 @@
 
     "map": {
       "gameDiameter": 4000,
+      "gridSize": 30,
 
       "playerAreaPortion": 0.4,
 
@@ -396,7 +397,7 @@
 
       "deadlyBorder": false,
 
-      "outputGrid": false,
+      "debugOutput": true,
 
       "portions": {
         "H": 30,

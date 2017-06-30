@@ -53,7 +53,7 @@ class GameMechanics {
 
         var diameter = this.game_map.radius * 2;
 
-        var quantity = garbageDensity * Math.PI * diameter * diameter / 4;
+        var quantity = Math.floor(garbageDensity * Math.PI * diameter * diameter / 4);
 
         console.log(`creating ${quantity} elements`);
 
@@ -83,15 +83,16 @@ class GameMechanics {
     }
 
     createPortionsOfGarbage(quantity) {
+        console.log(`grid size ${config.game.map.gridSize},
+                    diameter ${config.game.chemistry.Li.radius * 2}`);
+
         let i = 0;
         for (let key in portions) {
             let elementQuantity = quantity / 100 * portions[key];
 
             for (let j = 0; j < elementQuantity; ++j) {
 
-                var position = this.game_map
-                    .getRandomPositionOuter();
-
+                var position = this.game_map.getRandomPositionOuter();
 
                 this.createSingleGarbage(key, position, i);
                 ++i;
@@ -125,7 +126,9 @@ class GameMechanics {
         }
 
         //TODO: change test parameters to normal
-        var pos = this.game_map.getRandomPositionInner();
+        //var pos = this.game_map.getRandomPositionInner();
+        let pos = this.game_map.getPositionInMaximumFreeArea();
+        console.log(pos);
         var stub = {
             body: { position: pos, coefficient: 0.2 },
             ws: ws,

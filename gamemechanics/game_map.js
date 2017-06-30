@@ -31,6 +31,8 @@ class Map {
         this.borderPartHeight = config.game.map.borderPartHeight;
 
         this.inscribedCircleSide = Math.sqrt(Math.pow(2 * this.radius, 2) / 2);
+
+        console.log(`cell size ${this.inscribedCircleSide / config.game.map.gridSize}`);
     }
 
     createFullBorder() {
@@ -77,22 +79,22 @@ class Map {
         return this.getRandomPositionInside(0, this.playerAreaRadius);
     }
 
-    createGrid(sideSize) {
+    createGrid(gridSideSize) {
 
         let startPoint =
             { x: this.center.x - this.inscribedCircleSide / 2,
                 y: this.center.y - this.inscribedCircleSide / 2 };
 
-        let grid = [];
+        let gridCells = [];
 
-        for (let i = 0; i < sideSize; ++i) {
-            grid[i] = [];
-            for (let j = 0; j < sideSize; ++j) {
-                grid[i][j] = false;
+        for (let i = 0; i < gridSideSize; ++i) {
+            gridCells[i] = [];
+            for (let j = 0; j < gridSideSize; ++j) {
+                gridCells[i][j] = false;
             }
         }
 
-        let cellSide = this.inscribedCircleSide / sideSize;
+        let cellSideSize = this.inscribedCircleSide / gridSideSize;
 
         let garbage = this.context.garbage.filter(garbage => {return garbage});
         for (let i = 0; i < garbage.length; ++i) {
@@ -102,52 +104,122 @@ class Map {
                     y: currentGarbage.body.position.y - startPoint.y };
             if (positionInSquare.x < 0 || positionInSquare.y < 0) continue;
 
-            let rowPos = Math.floor(positionInSquare.y / cellSide);
-            let columnPos = Math.floor(positionInSquare.x / cellSide);
+            let rowPos = Math.floor(positionInSquare.y / cellSideSize);
+            let columnPos = Math.floor(positionInSquare.x / cellSideSize);
 
             let positions = [
                 { x: columnPos, y: rowPos },
                 { x: columnPos, y: rowPos - 1 },
                 { x: columnPos, y: rowPos + 1 },
+
                 { x: columnPos + 1, y: rowPos },
                 { x: columnPos + 1, y: rowPos - 1},
                 { x: columnPos + 1, y: rowPos + 1},
+
                 { x: columnPos - 1, y: rowPos },
                 { x: columnPos - 1, y: rowPos - 1 },
                 { x: columnPos - 1, y: rowPos + 1 }
             ];
 
             let checkAndSetCell = (i, j, pos, body) => {
-                if (grid[i][j]) return;
+                if (gridCells[i][j]) return;
 
-                let rect = { width: cellSide, height: cellSide,
-                    x: (j + 0.5) * cellSide, y: (i + 0.5) * cellSide };
+                let rect = { width: cellSideSize, height: cellSideSize,
+                    x: (j + 0.5) * cellSideSize, y: (i + 0.5) * cellSideSize };
 
 
                 pos.radius = body.radius;
 
                 if (Util_tools.isCollidingRectCircle(rect, pos)) {
-                    grid[i][j] = true;
+                    gridCells[i][j] = true;
                 }
             };
 
             for (let i = 0; i < positions.length; ++i) {
-                if (positions[i].x < sideSize && positions[i].y < sideSize &&
+                if (positions[i].x < gridSideSize && positions[i].y < gridSideSize &&
                     positions[i].x >= 0 && positions[i].y >= 0) {
                     checkAndSetCell(positions[i].y, positions[i].x, positionInSquare, currentGarbage.body);
                 }
             }
         }
 
-        if (config.game.map.outputGrid) {
-            for (let i = 0; i < sideSize; ++i) {
-                let row = '';
-                for (let j = 0; j < sideSize; ++j) {
-                    row += (grid[i][j] ? 'x' : ' ');
+        let resultGrid = {cells: gridCells, size: gridSideSize,
+                            cellSide: cellSideSize, startPoint: startPoint};
+
+        if (config.game.map.debugOutput) this.outPutGrid(resultGrid);
+
+        return resultGrid;
+    }
+
+    outPutGrid(grid) {
+        for (let i = 0; i < grid.size; ++i) {
+            let row = '';
+            for (let j = 0; j < grid.size; ++j) {
+                row += (grid.cells[i][j] ? '.' : 'x');
+            }
+            console.log(row);
+        }
+    }
+
+    getMaximumFreeArea(grid) {
+        let maxArea = {
+            i: -1,
+            j: -1,
+            sideSize: -1
+        };
+
+        for (let i = 0; i < grid.size; ++i) {
+            for (let j = 0; j < grid.size; ++j) {
+
+                if (!grid.cells[i][j]) {
+                    let k = i;
+                    while (k < grid.size && !grid.cells[k][j]) {
+                        ++k;
+                    }
+
+                    let areaHeight = k - i;
+                    if (!areaHeight) continue;
+
+                    let isRowComplete = true;
+                    let m = j;
+
+                    while (m < grid.size && isRowComplete) {
+                        ++m;
+                        for (let k = j; k < Math.min(j + areaHeight, grid.size); ++k) {
+                            isRowComplete &= !grid.cells[k][m];
+                        }
+                    }
+
+                    let areaWidth = m - j;
+
+                    let side = Math.min(areaWidth, areaHeight);
+
+                    if (side > maxArea.sideSize) {
+                        if (config.game.map.debugOutput)
+                            console.log(`area height ${areaHeight} area width ${areaWidth} i ${i} j ${j}`);
+                        maxArea.i = i;
+                        maxArea.j = j;
+                        maxArea.sideSize = side;
+                    }
                 }
-                console.log(row);
+
             }
         }
+
+        if (config.game.map.debugOutput)
+            console.log(`max area i ${maxArea.i} j ${maxArea.j} side ${maxArea.sideSize}`);
+
+        return maxArea;
+    }
+
+    getPositionInMaximumFreeArea() {
+        let grid = this.createGrid(config.game.map.gridSize);
+        let maxArea = this.getMaximumFreeArea(grid);
+
+        return {x: (maxArea.j + (maxArea.sideSize * 0.5))
+                * grid.cellSide + grid.startPoint.x,
+                y: (maxArea.i + (maxArea.sideSize * 0.5))
+                * grid.cellSide + grid.startPoint.y}
     }
 }
 
