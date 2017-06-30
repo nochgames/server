@@ -40,6 +40,9 @@ class BasicParticle {
         this.body.chemicalChildren = [];
         this.body.neighbours = [];
 
+        if (elem != 'ph' && elem != 'n' && elem != 'p')
+            this.body.emitter.emit('element appeared', {element: elem});
+
         this.body.chemistry = chemistry;
         chemistry.setElement(elem, this);
 

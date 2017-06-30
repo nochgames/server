@@ -12,6 +12,9 @@ class Context {
         this.playersEmitter = playersEmitter;
         this.engine = engine;
         this.websocketservice = websocketservice;
+
+        this.initialElementsQuantity = {};
+        this.currentElementsQuantity = {};
     }
 
     getArray(body) {
