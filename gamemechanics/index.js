@@ -55,7 +55,7 @@ class GameMechanics {
         var quantity = Math.floor(garbageDensity * Math.PI * diameter * diameter / 4);
 
         let maxElementsPossible = quantity + config.server.playersPerServer;
-        let elementsLimit = Math.pow(this.game_map.gridSize, 2) / 4;
+        let elementsLimit = Math.floor(Math.pow(this.game_map.gridSize, 2) / 1.5);
         if (quantity > 4 && maxElementsPossible > elementsLimit) {
             Util_tools.handleError(`An attempt to create ${quantity} elements
             while limit is ${elementsLimit - config.server.playersPerServer}`);
