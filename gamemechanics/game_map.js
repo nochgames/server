@@ -47,7 +47,7 @@ class Map {
             }
         }
 
-        let minimumCellSize = biggestElementRadius * 2 * 1.2;
+        let minimumCellSize = biggestElementRadius * 2 * 1.05;
         if (cellSize < minimumCellSize) {
             let newGridSize = Math.floor(this.inscribedCircleSide / minimumCellSize);
 
