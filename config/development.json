@@ -2,8 +2,9 @@
   "noThrow": false,
   "server" : {
     "port": "8085",
-    "playersPerServer": 1,
-    "defaultServersNumber": 1
+    "playersPerServer": 10,
+    "defaultServersNumber": 1,
+    "checkUniqueIps": false
   },
 
   "game": {
@@ -13,7 +14,7 @@
 
     "doReverseGarbage": false,
 
-    "garbageDensity": 0.000005,
+    "garbageDensity": 0.0000045,
 
     "chemistry": {
       "dontAddChildrenToConnectingParticles": true,
@@ -385,7 +386,7 @@
     },
 
     "map": {
-      "gameDiameter": 750,
+      "gameDiameter": 4750,
       "gridSize": 30,
 
       "playerAreaPortion": 0.4,

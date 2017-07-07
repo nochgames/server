@@ -6,6 +6,7 @@
 
 var WebSocketServer = new require('ws');
 var Messages = require("../messages");
+const config = require('config-node');
 
 class WebsocketService {
     
@@ -24,7 +25,7 @@ class WebsocketService {
 
         let self = this;
         this.webSocketServer.on('connection', function(ws) {
-            if (self.IPs.has(ws._socket.remoteAddress)) {
+            if (config.server.checkUniqueIPs && self.IPs.has(ws._socket.remoteAddress)) {
                 ws.close();
                 return;
             }
