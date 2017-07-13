@@ -247,6 +247,10 @@ class Map {
             * grid.cellSide + grid.startPoint.y}
     }
 
+    getPositionForPlayerStub() {
+        return config.game.map.defaultPlayerStubPosition == "center" ? this.center : this.getPositionInMaximumFreeArea();
+    }
+
     getPositionInMaximumFreeArea() {
         let grid = this.createGrid(this.gridSize);
         if (!grid.freeIndexes.length) {

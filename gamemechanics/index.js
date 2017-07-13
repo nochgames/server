@@ -137,8 +137,7 @@ class GameMechanics {
         }
 
         //TODO: change test parameters to normal
-        //var pos = this.game_map.getRandomPositionInner();
-        let pos = this.game_map.getPositionInMaximumFreeArea();
+        let pos = this.game_map.getPositionForPlayerStub();
         console.log(pos);
         var stub = {
             body: { position: pos, coefficient: 0.2 },

@@ -400,6 +400,8 @@
 
       "debugOutput": true,
 
+      "defaultPlayerStubPosition": "center",
+
       "portions": {
         "H": 30,
         "He": 6,
