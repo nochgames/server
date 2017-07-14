@@ -647,6 +647,7 @@ class GameMechanics {
                     this.context.currentElementsQuantity[elements[i]]) {
                 this.createSingleGarbage(elements[i], this.game_map.getRandomPosition());
             }
+
             let elementsToDeleteNumber = this.context.currentElementsQuantity[elements[i]] -
                     this.context.initialElementsQuantity[elements[i]];
             if (elementsToDeleteNumber > 0) {

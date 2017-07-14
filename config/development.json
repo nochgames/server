@@ -387,6 +387,7 @@
 
     "map": {
       "gameDiameter": 3250,
+
       "gridSize": 30,
 
       "playerAreaPortion": 0.4,
