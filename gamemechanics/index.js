@@ -630,10 +630,12 @@ class GameMechanics {
 
     balanceBotsQuantity() {
         let players = this.context.players.filter(player => {return player && !player.isStub;});
+        let bots = players.filter(player => {return player.isBot});
 
-        let botsToAddQuantity = config.server.playersPerServer - players.length;
+        let playersToAddQuantity = config.server.playersPerServer - players.length;
+        let botsToAddQuantity = config.game.botsQuantity - bots.length;
 
-        for (let i = 0; i < botsToAddQuantity; ++i) {
+        for (let i = 0; i < Math.min(playersToAddQuantity, botsToAddQuantity); ++i) {
             this.addBot('PhysicsBot');
         }
     }
