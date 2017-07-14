@@ -628,6 +628,16 @@ class GameMechanics {
         }
     }
 
+    balanceBotsQuantity() {
+        let players = this.context.players.filter(player => {return player && !player.isStub;});
+
+        let botsToAddQuantity = config.server.playersPerServer - players.length;
+
+        for (let i = 0; i < botsToAddQuantity; ++i) {
+            this.addBot('PhysicsBot');
+        }
+    }
+
     balanceElementsQuantity() {
         let elements = config.game.chemistry.elements;
         for (let i = 0; i < elements.length; ++i) {
@@ -711,6 +721,7 @@ class GameMechanics {
             this.checkGarbageVisibility();
             this.updateConnectionPossibilityGeneral();
             this.balanceElementsQuantity();
+            this.balanceBotsQuantity();
         }, 1000));
 
         this.logMemoryUsage();

@@ -34,7 +34,7 @@
         "mass": 6,
         "neutrons": 2,
         "maxNeutrons": 4,
-        "coolDown": 5000,
+        "coolDown": 10000,
         "energy": 150
       },
 
