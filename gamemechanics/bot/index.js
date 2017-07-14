@@ -10,10 +10,10 @@ let config = require('config-node');
 class Bot extends BasicBot {
 
     constructor(position, engine, elem, emitter,
-                websocketservice, chemistry, color) {
+                websocketservice, chemistry, color, name="Wanderer_") {
         //console.log(arguments);
         super(position, engine, elem, emitter,
-                websocketservice, chemistry, color, "Wanderer_");
+                websocketservice, chemistry, color, name);
     }
 
     initBotLogic() {
@@ -34,7 +34,7 @@ class Bot extends BasicBot {
     }
 
     wander() {
-        const velocity = 6;
+        const velocity = 0.000022;
         const changeDirectionChance = 0.2;
 
         let dirPos = this.directionPosition;

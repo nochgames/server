@@ -66,8 +66,7 @@ class WebsocketService {
         try {
             receiver.ws.send(message);
         } catch(e) {
-            console.log(`Unable to send ${message}
-                 to player. Player is\n ${receiver}\n ${e}`);
+            console.log(`Unable to send ${message}\nto player. Player is\n ${receiver}\n ${e}`);
         }
     }
 

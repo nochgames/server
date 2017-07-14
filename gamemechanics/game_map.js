@@ -19,7 +19,7 @@ class Map {
         this.engine = engine;
         this.context = context;
 
-        this.border = [];
+        this.context.border = [];
 
         this.radius = config.game.map.gameDiameter / 2;
         this.center = { x: this.radius, y: this.radius };
@@ -68,8 +68,8 @@ class Map {
             let borderBody =
                 Bodies.rectangle(this.center.x - this.radius * Math.cos(i),
                     this.center.y - this.radius * Math.sin(i),
-                    BORDER_PART_HEIGHT, BORDER_PART_LENGTH, { isStatic: true,
-                        angle: i });
+                    BORDER_PART_HEIGHT, BORDER_PART_LENGTH,
+                    { isStatic: true, angle: i });
 
             var borderPart = { body: borderBody };
             borderBody.circleRadius = BORDER_PART_LENGTH * 2;
@@ -77,7 +77,7 @@ class Map {
             borderBody.playersWhoSee = [];
 
             World.addBody(this.engine.world, borderBody);
-            this.border.push(borderPart);
+            this.context.border.push(borderPart);
         }
     }
 
@@ -248,7 +248,8 @@ class Map {
     }
 
     getPositionForPlayerStub() {
-        return config.game.map.defaultPlayerStubPosition == "center" ? this.center : this.getPositionInMaximumFreeArea();
+        return config.game.map.defaultPlayerStubPosition == "center" ?
+                this.center : this.getPositionInMaximumFreeArea();
     }
 
     getPositionInMaximumFreeArea() {

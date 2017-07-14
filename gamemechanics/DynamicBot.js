@@ -3,9 +3,11 @@
  */
 
 let Wanderer = require('./bot');
+let PhysicsBot = require('./physicsBot');
 
 let Bots = {
-    Wanderer
+    Wanderer,
+    PhysicsBot
 };
 
 class DynamicBot {

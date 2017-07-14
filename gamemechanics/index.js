@@ -193,13 +193,13 @@ class GameMechanics {
         return player;
     }
 
-    addBot() {
+    addBot(name) {
 
-        let bot = new DynamicBot('Wanderer',
+        let bot = new DynamicBot(name,
             this.game_map.getRandomPositionInner(),
             this.context.engine, config.game.defaultElement,
             this.context.playersEmitter, this.context.websocketservice,
-            this.context.chemistry, this.getRandomColor());
+            this.context.chemistry, this.getRandomColor(), this.context);
 
         bot.setNumber(this.context.addToArray(
             this.context.players,
@@ -219,7 +219,7 @@ class GameMechanics {
 
     createBots() {
         for (let i = 0; i < config.game.botsQuantity; ++i) {
-            this.addBot();
+            this.addBot('PhysicsBot');
         }
     }
 
@@ -391,7 +391,7 @@ class GameMechanics {
     }
 
     checkGarbageVisibility() {
-        var objects = this.context.garbage.concat(this.game_map.border)
+        var objects = this.context.garbage.concat(this.context.border)
             .concat(this.context.freeProtons);
         objects = objects.filter(obj => {
             return obj;
@@ -400,7 +400,7 @@ class GameMechanics {
             for (let j = 0; j < this.context.players.length; ++j) {
                 // inScreen is called on context for tests
                 if (this.context.players[j] && this.context.players[j].isReady &&
-                    this.context.inScreen.call(this.context.players[j], objects[i], 500)) {
+                    this.context.inScreen(objects[i], this.context.players[j], 500)) {
 
                     var addedSuccessfully = this.addPlayerWhoSee(objects[i], j);
                     if (addedSuccessfully) {
@@ -415,7 +415,7 @@ class GameMechanics {
                 if (!this.context.players[playersWhoSee[j]]) {
                     playersWhoSee.splice(j, 1);
                     // inScreen is called on context for tests
-                } else if (!this.context.inScreen.call(this.context.players[playersWhoSee[j]], objects[i], 500)) {
+                } else if (!this.context.inScreen(objects[i], this.context.players[playersWhoSee[j]], 500)) {
                     this.context.websocketservice.sendToPlayer(
                         Messages.deleteParticle(objects[i].body.id),
                         this.context.players[playersWhoSee[j]]);
@@ -443,7 +443,7 @@ class GameMechanics {
             var playerId = this.context.players.indexOf(event.player);
             this.context.websocketservice.sendEverybody(Messages.deletePlayer(
                                                         event.player.body.id));
-            var objects = this.context.garbage.concat(this.game_map.border)
+            var objects = this.context.garbage.concat(this.context.border)
                             .concat(this.context.freeProtons);
             objects = objects.filter(obj => {
                 return obj;

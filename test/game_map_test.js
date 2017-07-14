@@ -35,8 +35,8 @@ describe('game_map', function() {
         });
 
         it('should make an array of all border parts', function() {
-            assert(game_map.border.length == allBodies.length) &&
-            game_map.border.every(function(element, index) {
+            assert(context.border.length == allBodies.length) &&
+            context.border.every(function(element, index) {
                 return element === allBodies[index]
             })
         })

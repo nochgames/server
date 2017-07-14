@@ -87,6 +87,10 @@ class ActiveElement extends basicParticle {
         return func.mass;
     }
 
+    canShoot(particle) {
+        return !this["timeLimit" + particle];
+    }
+
     shoot(particle, shotPos, nucleonsArray, engine) {
 
         if (particle == "p" && this.body.element == "H") return false;
@@ -200,7 +204,7 @@ class ActiveElement extends basicParticle {
 
 
     applyVelocity(mx, my) {
-
+        //console.log(`applying ${mx} ${my}`);
         var speed = this.body.nuclearSpeed;
 
         const PERCENT_FULL = 100;
@@ -227,13 +231,14 @@ class ActiveElement extends basicParticle {
             /*var distance = Math.sqrt((pos1.x - pos2.x) * (pos1.x - pos2.x)
              + (pos1.y - pos2.y) * (pos1.y - pos2.y));
              if (!distance) distance = 1;*/
-            Body.applyForce(body, body.position,
-                /*Matter.Body.setVelocity(body,*/ Vector.create(
-                    speed / forceCoefficient /*!/ Math.sqrt(distance) */*
-                    mx / Math.sqrt(mx * mx + my * my),
-                    speed / forceCoefficient /*/ Math.sqrt(distance) */*
-                    my / Math.sqrt(mx * mx + my * my)
-                ));
+            let vec = /*Matter.Body.setVelocity(body,*/ Vector.create(
+                speed / forceCoefficient /*!/ Math.sqrt(distance) */*
+                mx / Math.sqrt(mx * mx + my * my),
+                speed / forceCoefficient /*/ Math.sqrt(distance) */*
+                my / Math.sqrt(mx * mx + my * my)
+            );
+            //console.log(`velocity x ${vec.x} y ${vec.y}`);
+            Body.applyForce(body, body.position, vec);
         });
 
         speed *= partsMultiplier;

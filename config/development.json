@@ -8,13 +8,13 @@
   },
 
   "game": {
-    "botsQuantity": 0,
+    "botsQuantity": 5,
 
     "defaultElement": "C",
 
     "doReverseGarbage": false,
 
-    "garbageDensity": 0.0000045,
+    "garbageDensity": 0.0000055,
 
     "chemistry": {
       "dontAddChildrenToConnectingParticles": true,
@@ -386,7 +386,7 @@
     },
 
     "map": {
-      "gameDiameter": 4750,
+      "gameDiameter": 3250,
       "gridSize": 30,
 
       "playerAreaPortion": 0.4,
