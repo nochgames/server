@@ -52,7 +52,6 @@ class PhysicsBot extends Wanderer {
     }
 
     considerShooting() {
-        console.log(Math.random());
         if (Math.random() < 0.87) return;
 
         const particle = 'ph';

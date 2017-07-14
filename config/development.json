@@ -14,7 +14,7 @@
 
     "doReverseGarbage": false,
 
-    "garbageDensity": 0.0000055,
+    "garbageDensity": 0.0000155,
 
     "chemistry": {
       "dontAddChildrenToConnectingParticles": true,
