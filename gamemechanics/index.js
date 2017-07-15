@@ -76,7 +76,7 @@ class GameMechanics {
             let position = this.game_map
                 .getRandomPositionOuter();
 
-            this.createSingleGarbage(element, position, j);
+            this.createSingleGarbage(element, position);
         }
     }
 
@@ -105,18 +105,17 @@ class GameMechanics {
 
                 var position = this.game_map.getRandomPositionOuter();
 
-                this.createSingleGarbage(key, position, i);
+                this.createSingleGarbage(key, position);
                 ++i;
             }
         }
     }
 
-    createSingleGarbage(element, position, number = this.context.garbage.length) {
+    createSingleGarbage(element, position) {
         var singleGarbage = new Garbage(position, this.context.engine, element,
             this.context.playersEmitter, this.context.chemistry);
 
-        this.context.garbage.push(singleGarbage);
-        singleGarbage.body.number = number;
+        singleGarbage.body.number = Util_tools.addToArray(this.context.garbage, singleGarbage);
 
         this.processNewBody(singleGarbage.body);
     }
