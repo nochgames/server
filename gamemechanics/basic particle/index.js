@@ -357,7 +357,7 @@ class BasicParticle {
         nucleon.body = nucleonBody;
         nucleon.body.playersWhoSee = [];
         World.addBody(engine.world, nucleonBody);
-        nucleonsArray.push(nucleon);
+        Util_tools.addToArray(nucleonsArray, nucleon);
         nucleonBody.number = nucleonsArray.indexOf(nucleon);
         this.body.emitter.emit('particle appeared', { body: nucleonBody });
         return nucleonBody;

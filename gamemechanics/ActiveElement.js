@@ -174,7 +174,7 @@ class ActiveElement extends basicParticle {
     garbagify(playersArray, garbageArray, newPlayerBody) {
 
         var playerIndex = this.body.playerNumber;
-        garbageArray.push(this);
+        Util_tools.addToArray(garbageArray, this);
         this.body.number = garbageArray.indexOf(this);
 
         if (newPlayerBody !== undefined) {
