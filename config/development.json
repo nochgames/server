@@ -399,7 +399,7 @@
 
       "deadlyBorder": true,
 
-      "debugOutput": true,
+      "debugOutput": false,
 
       "defaultPlayerStubPosition": "center",
 

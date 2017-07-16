@@ -13,7 +13,7 @@ let Bots = {
 class DynamicBot {
     constructor (className) {
         //[].shift.call(arguments);
-        console.log(arguments);
+        //console.log(arguments);
         return new (
             Function.prototype.bind.apply(Bots[className],
                 arguments));

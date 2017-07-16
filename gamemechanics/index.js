@@ -137,7 +137,7 @@ class GameMechanics {
 
         //TODO: change test parameters to normal
         let pos = this.game_map.getPositionForPlayerStub();
-        console.log(pos);
+        //console.log(pos);
         var stub = {
             body: { position: pos, coefficient: 0.2 },
             ws: ws,
@@ -779,6 +779,7 @@ class GameMechanics {
             if (usage > max) max = usage;
             console.log("Heap used: " + usage + ' (min: '
                 + min + ', max: ' + max + ')');
+            console.log(`lengths: garbage ${this.context.garbage.length}\nplayers ${this.context.players.length}\nnucleons ${this.context.freeProtons.length}\ngarbage active ${this.context.garbageActive.length}`)
         }, 30000));
     }
 }

@@ -29,7 +29,7 @@ class RecycleBin {
         for (let i = 0; i < this.ghosts.length; ++i) {
             if (!this.ghosts[i]) continue;
             var ghost = this.ghosts[i];
-            this.deletedIds.push(ghost.id);
+            //this.deletedIds.push(ghost.id);
             switch (ghost.inGameType) {
                 case "p":
                 case "n":
@@ -38,7 +38,7 @@ class RecycleBin {
                     delete this.ghosts[i];
                     break;
                 case "playerPart":
-                    this.deletedGabageNumbers.push(ghost.number);
+                    //this.deletedGabageNumbers.push(ghost.number);
                     var playerToCheck = this.context.getPlayer(ghost);
                     this.context.getMainObject(ghost).die(this.context.engine);
                     this.deleteProperly(ghost);
@@ -47,7 +47,7 @@ class RecycleBin {
                     playerToCheck.checkResizeShrink();
                     break;
                 case "garbage":
-                    this.deletedGabageNumbers.push(ghost.number);
+                    //this.deletedGabageNumbers.push(ghost.number);
                     this.context.getMainObject(ghost).die(this.context.engine);
                     this.deleteProperly(ghost);
                     this.context.playersEmitter.emit('element deleted', {element:ghost.element});

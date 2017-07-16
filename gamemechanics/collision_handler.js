@@ -27,7 +27,7 @@ class CollisionHandler {
 
                 if (bodyA.collisionFilter.mask == 8 ||
                     bodyB.collisionFilter.mask == 8) {
-                    console.log("Same body is processed again");
+                    //console.log("Same body is processed again");
                     continue;
                 }
 
