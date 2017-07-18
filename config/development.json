@@ -79,7 +79,7 @@
         "neutrons": 2,
         "maxNeutrons": 2,
         "coolDown": 2000,
-        "energy": 0
+        "energy": 1
       },
 
       "B": {
